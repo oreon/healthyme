@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthyme/box_breathing_screen.dart';
 import 'med_screens.dart';
 
 class MeditationTab extends StatelessWidget {
@@ -46,6 +47,12 @@ class MeditationTab extends StatelessWidget {
               'Loving Kindness',
               Colors.purple,
               const LovingKindnessScreen(),
+            ),
+            _buildMeditationButton(
+              context,
+              'Box Breathing',
+              Colors.purple,
+              BoxBreathingScreen(),
             ),
           ],
         ),
