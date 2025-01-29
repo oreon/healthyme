@@ -53,6 +53,14 @@ class _LogScreenState extends State<LogScreen> {
     return DateFormat('hh:mm a').format(dateTime);
   }
 
+  String formatDuration(int seconds) {
+    // Convert seconds to minutes and seconds
+    final int minutes = seconds ~/ 60;
+    final int remainingSeconds = seconds % 60;
+    // Format as "X minutes Y seconds" (e.g., "5 minutes 30 seconds")
+    return '$minutes minutes $remainingSeconds seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,7 +83,8 @@ class _LogScreenState extends State<LogScreen> {
                 final log = _logs[index];
                 return ListTile(
                   title: Text(log['activity']),
-                  subtitle: Text('Duration: ${log['duration']} seconds'),
+                  subtitle:
+                      Text('Duration: ${formatDuration(log['duration'])} '),
                   trailing: Text(formatTime(log['time'])), // Format the time
                 );
               },
