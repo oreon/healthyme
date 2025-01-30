@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart'; // For playing bell sound
 
 class BoxBreathingScreen extends StatefulWidget {
+  const BoxBreathingScreen({super.key});
+
   @override
   _BoxBreathingScreenState createState() => _BoxBreathingScreenState();
 }
@@ -170,12 +172,12 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _startExercise,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
                 child: Text(
                   'Start Exercise',
                   style: TextStyle(fontSize: 20),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 ),
               ),
             ],
@@ -199,12 +201,12 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _stopExercise,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
                 child: Text(
                   'Stop Exercise',
                   style: TextStyle(fontSize: 20),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 ),
               ),
             ],

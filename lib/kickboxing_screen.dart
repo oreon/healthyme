@@ -1,5 +1,4 @@
 import 'workout_screen.dart';
-import 'package:flutter/material.dart';
 
 class KickboxingScreen extends WorkoutScreen {
   const KickboxingScreen({super.key});

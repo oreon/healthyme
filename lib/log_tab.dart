@@ -4,7 +4,8 @@ import 'database_helper.dart'; // Import the DatabaseHelper class
 
 var exercises = [
   'pranayama',
-  'lower body strength',
+  'lower body workout',
+  'upper body workout',
   'yoga',
   'kickboxing',
   'upper body strength'

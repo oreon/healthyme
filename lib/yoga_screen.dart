@@ -1,5 +1,4 @@
 import 'workout_screen.dart';
-import 'package:flutter/material.dart';
 
 class YogaScreen extends WorkoutScreen {
   const YogaScreen({super.key});
