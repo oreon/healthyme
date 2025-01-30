@@ -75,7 +75,7 @@ class LovingKindnessScreen extends MeditationScreen {
           description:
               'Relax your body, put on a budha smile and mentally say may I be happy, may all beings be happy',
           //audioFile: 'sounds/relax.mp3',
-          meditationName: 'Walking Meditation',
+          meditationName: 'Loving kindness Meditation',
         );
 
   @override

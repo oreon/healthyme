@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart';
+import 'notifications_service.dart'; // Import the NotificationService class
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,6 +18,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _gender = '';
   double _currentWeight = 0.0;
   String? _fastingDay;
+  TimeOfDay? _feedingStartTime;
+  TimeOfDay? _feedingEndTime;
 
   final List<String> _daysOfWeek = [
     'None',
@@ -27,9 +32,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'Sunday',
   ];
 
+  final NotificationService _notificationService = NotificationService();
+
   @override
   void initState() {
     super.initState();
+    _notificationService.init(); // Initialize the notification service
     _loadProfile();
   }
 
@@ -41,6 +49,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _gender = prefs.getString('gender') ?? '';
       _currentWeight = prefs.getDouble('currentWeight') ?? 0.0;
       _fastingDay = prefs.getString('fastingDay');
+
+      // Load feeding times
+      final startTime = prefs.getString('feedingStartTime');
+      final endTime = prefs.getString('feedingEndTime');
+      if (startTime != null) {
+        _feedingStartTime = TimeOfDay(
+          hour: int.parse(startTime.split(':')[0]),
+          minute: int.parse(startTime.split(':')[1]),
+        );
+      }
+      if (endTime != null) {
+        _feedingEndTime = TimeOfDay(
+          hour: int.parse(endTime.split(':')[0]),
+          minute: int.parse(endTime.split(':')[1]),
+        );
+      }
     });
   }
 
@@ -56,9 +80,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.setDouble('currentWeight', _currentWeight);
       await prefs.setString('fastingDay', _fastingDay ?? 'None');
 
+      // Save feeding times
+      if (_feedingStartTime != null) {
+        await prefs.setString('feedingStartTime',
+            '${_feedingStartTime!.hour}:${_feedingStartTime!.minute}');
+      }
+      if (_feedingEndTime != null) {
+        await prefs.setString('feedingEndTime',
+            '${_feedingEndTime!.hour}:${_feedingEndTime!.minute}');
+      }
+
+      // Schedule notifications for feeding start and end times
+      if (_feedingStartTime != null && _feedingEndTime != null) {
+        await _scheduleFeedingNotifications();
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile saved!')),
       );
+    }
+  }
+
+  Future<void> _scheduleFeedingNotifications() async {
+    // Cancel any existing notifications
+    await _notificationService.cancelAllNotifications();
+
+    // Schedule feeding start notification
+    if (_feedingStartTime != null && _feedingEndTime != null) {
+      {
+        await _notificationService.zonedSchedule(
+          100, // Unique ID for feeding start notification
+          'Feeding can start!',
+          'It\'s time to start your meals.',
+          _feedingStartTime!.hour, _feedingStartTime!.minute,
+        );
+
+        await _notificationService.zonedSchedule(
+          101, // Unique ID for feeding start notification
+          'Feeding Time over!',
+          'Your feeding window has ended. Please do not consume anything till tomorro',
+          _feedingEndTime!.hour, _feedingEndTime!.minute,
+        );
+      }
     }
   }
 
@@ -76,6 +139,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStartTime) {
+          _feedingStartTime = picked;
+        } else {
+          _feedingEndTime = picked;
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
                 controller: _nameController,
@@ -136,6 +215,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextFormField(
                 decoration: InputDecoration(labelText: 'Current Weight (kg)'),
                 keyboardType: TextInputType.number,
+                initialValue:
+                    _currentWeight == 0.0 ? '' : _currentWeight.toString(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your weight';
@@ -165,6 +246,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _fastingDay = value;
                   });
                 },
+              ),
+              SizedBox(height: 20),
+              InkWell(
+                onTap: () => _selectTime(context, true),
+                child: InputDecorator(
+                  decoration: InputDecoration(labelText: 'Feeding Start Time'),
+                  child: Text(
+                    _feedingStartTime == null
+                        ? 'Select Start Time'
+                        : _feedingStartTime!.format(context),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              InkWell(
+                onTap: () => _selectTime(context, false),
+                child: InputDecorator(
+                  decoration: InputDecoration(labelText: 'Feeding End Time'),
+                  child: Text(
+                    _feedingEndTime == null
+                        ? 'Select End Time'
+                        : _feedingEndTime!.format(context),
+                  ),
+                ),
               ),
               SizedBox(height: 20),
               ElevatedButton(
