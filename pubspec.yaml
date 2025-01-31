@@ -44,6 +44,12 @@ dependencies:
   wakelock_plus: 1.2.10
   workmanager: 0.5.2
   flutter_native_timezone: ^2.0.0
+  #microphone: 0.1.0
+  #google_ml_kit: ^2.0.0
+  #record: ^2.0.0
+  flutter_sound: ^9.20.5
+  permission_handler: ^11.3.1 # For handling permissions
+  just_audio: ^0.9.44 # For audio playback
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

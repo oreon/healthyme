@@ -1,0 +1,5 @@
+{
+    "recording_interval_seconds": 300,
+    "recording_duration_seconds": 20,
+    "total_recording_duration_minutes": 30
+  }

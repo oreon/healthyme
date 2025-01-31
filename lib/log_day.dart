@@ -2,14 +2,14 @@
 
 import 'package:flutter/material.dart';
 
-class TalkToAIScreen extends StatefulWidget {
-  const TalkToAIScreen({super.key});
+class LogDayScreen extends StatefulWidget {
+  const LogDayScreen({super.key});
 
   @override
-  _TalkToAIScreenState createState() => _TalkToAIScreenState();
+  _LogDayScreenState createState() => _LogDayScreenState();
 }
 
-class _TalkToAIScreenState extends State<TalkToAIScreen> {
+class _LogDayScreenState extends State<LogDayScreen> {
   final TextEditingController _messageController = TextEditingController();
   String _aiResponse = '';
 
@@ -32,13 +32,8 @@ class _TalkToAIScreenState extends State<TalkToAIScreen> {
 
   String _getMotivationalResponse(String message) {
     // Simulate AI response
-    if (message.toLowerCase().contains("exercis") ||
-        message.toLowerCase().contains("workout")) {
+    if (message.toLowerCase().contains("exercising")) {
       return "You got this! Even a small workout is better than none. Start with 5 minutes!";
-    }
-    if (message.toLowerCase().contains("meditat") ||
-        message.toLowerCase().contains("breath")) {
-      return "Meditation keeps your brain young and helps you reach flow state, its a great investment";
     }
     return "Stay positive and keep pushing forward!";
   }
@@ -59,7 +54,7 @@ class _TalkToAIScreenState extends State<TalkToAIScreen> {
                 labelText: 'Hows your day going ....',
                 border: OutlineInputBorder(),
               ),
-              maxLines: 3,
+              maxLines: 8,
             ),
             SizedBox(height: 20),
             ElevatedButton(

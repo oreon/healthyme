@@ -1,3 +1,8 @@
+import 'package:healthyme/app_drawer.dart';
+import 'package:healthyme/config.dart';
+import 'package:healthyme/log_day.dart';
+import 'package:healthyme/recoder_screen.dart';
+
 import 'kickboxing_screen.dart';
 import 'notifications_service.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +13,7 @@ import 'meditation_tab.dart';
 import 'diet_tab.dart';
 import 'log_tab.dart';
 import 'pranayama_screen.dart';
-import 'profile_screen.dart';
-import 'talk_to_ai_screen.dart';
+
 import 'yoga_screen.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -30,23 +34,28 @@ void callbackDispatcher() {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  final Config config = await Config.load();
   // Initialize notifications
   final notificationService = NotificationService();
   await notificationService.init();
   await notificationService.scheduleDailyReminders();
-  runApp(FitnessTrackerApp());
+  runApp(FitnessTrackerApp(config: config));
 }
 
 class FitnessTrackerApp extends StatelessWidget {
-  const FitnessTrackerApp({super.key});
+  final Config config;
+  const FitnessTrackerApp({required this.config, super.key});
+
+  //MyApp({required this.config});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fitness Tracker',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomeScreen(),
+      home: HomeScreen(
+        config: config,
+      ),
       routes: {
         '/exercise': (context) => LowerBodyWorkoutScreen(),
         '/yoga': (context) => YogaScreen(),
@@ -58,7 +67,8 @@ class FitnessTrackerApp extends StatelessWidget {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Config config;
+  const HomeScreen({super.key, required this.config});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -66,6 +76,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  //final Config config;
 
   // Define the tabs
   final List<Widget> _tabs = [
@@ -85,49 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Fitness Tracker'),
+        title: Text('Healthy me'),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Profile'),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.chat),
-              title: Text('Talk to AI'),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => TalkToAIScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(config: widget.config),
       body: _tabs[_selectedIndex], // Display the selected tab
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

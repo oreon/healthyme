@@ -8,10 +8,13 @@ class ExerciseTab extends StatelessWidget {
   const ExerciseTab({super.key});
 
   void _launchExerciseRoutine(BuildContext context) {
-    // Your existing code for launching the exercise routine
-    // For example:
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => LowerBodyWorkoutScreen()));
+  }
+
+  void _launchUpper(BuildContext context) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => UpperBodyWorkoutScreen()));
   }
 
   void _launchYoga(BuildContext context) {
@@ -47,7 +50,12 @@ class ExerciseTab extends StatelessWidget {
           children: <Widget>[
             ElevatedButton(
               onPressed: () => _launchExerciseRoutine(context),
-              child: Text('Exercise'),
+              child: Text('Lower body strength'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _launchUpper(context),
+              child: Text('Upper Body Strength'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
