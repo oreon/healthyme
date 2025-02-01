@@ -56,14 +56,6 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     WakelockPlus.enable();
   }
 
-  void startWorkoutTimer() {
-    workoutTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        elapsedTime++;
-      });
-    });
-  }
-
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (!isPaused) {
@@ -93,7 +85,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                   currentExerciseIndex = 0; // Reset to the first exercise
                 } else {
                   timer.cancel(); // Stop the timer when all sets are done
-                  workoutTimer.cancel();
+
                   //DatabaseHelper().logActivity(workoutName, totalDuration, '');
                   showWorkoutCompleteDialog();
                 }
@@ -125,7 +117,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
 
   void endWorkout() {
     timer.cancel();
-    workoutTimer.cancel();
+
     setState(() {
       isWorkoutStarted = false;
     });
@@ -168,7 +160,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   @override
   void dispose() {
     timer.cancel();
-    workoutTimer.cancel();
+
     audioPlayer.dispose();
     WakelockPlus.disable();
     super.dispose();
