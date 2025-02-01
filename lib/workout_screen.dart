@@ -21,12 +21,12 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   bool isWorkPhase = true;
   bool isPaused = false;
   late Timer timer;
+  bool isWorkoutStarted = false; // Track if the workout has started
   final AudioPlayer audioPlayer = AudioPlayer();
   final String restImage = 'assets/images/rest.jpg';
 
   int totalDuration = 0;
   int elapsedTime = 0;
-  late Timer workoutTimer;
 
   WorkoutScreenState({
     required this.exercises,
@@ -44,8 +44,15 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     totalDuration = exercises.fold(
             0, (sum, exercise) => sum + (exercise['duration'] as int)) *
         sets; // Cast to int
-    startWorkoutTimer();
+  }
+
+  void startWorkout() {
+    setState(() {
+      isWorkoutStarted = true;
+    });
+    //startWorkoutTimer();
     startTimer();
+    playStartAudio();
     WakelockPlus.enable();
   }
 
@@ -119,6 +126,9 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   void endWorkout() {
     timer.cancel();
     workoutTimer.cancel();
+    setState(() {
+      isWorkoutStarted = false;
+    });
 
     showWorkoutCompleteDialog();
   }
@@ -184,7 +194,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
             ),
             child: Container(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.51,
+              height: MediaQuery.of(context).size.height * 0.52,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(15),
@@ -208,10 +218,25 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Set $currentSet of $sets',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
+                  if (!isWorkoutStarted) // Show Start Workout button if workout hasn't started
+                    ElevatedButton(
+                      onPressed: startWorkout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                      ),
+                      child: Text(
+                        'Start Workout',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  if (isWorkoutStarted)
+                    Text(
+                      'Set $currentSet of $sets',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
                   SizedBox(height: 20),
                   Text(
                     isWorkPhase
