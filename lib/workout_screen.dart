@@ -14,6 +14,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   final String workoutName;
   final String defaultImage;
   final int restDuration; // Rest duration in seconds
+  final String? defaultAudio; // Default audio for the entire session
 
   int currentExerciseIndex = 0;
   int currentSet = 1;
@@ -34,6 +35,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     required this.workoutName,
     required this.restDuration,
     this.defaultImage = 'assets/images/default.jpg', // Default stock image
+    this.defaultAudio = 'sounds/workout.mp3', // Default
   });
 
   @override
@@ -99,7 +101,20 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   }
 
   void playStartAudio() async {
-    await audioPlayer.play(AssetSource('sounds/workout.mp3'));
+    // Stop default audio if exercise-specific audio is available
+    if (exercises[currentExerciseIndex]['audio'] != null) {
+      // await backgroundAudioPlayer.stop(); // Stop default audio
+      await audioPlayer
+          .play(AssetSource(exercises[currentExerciseIndex]['audio']));
+    } else if (defaultAudio != null) {
+      // Resume default audio if no exercise-specific audio is available
+      // if (!(await backgroundAudioPlayer.state == PlayerState.playing)) {
+      //   await backgroundAudioPlayer.play(AssetSource(defaultAudio!));
+      await audioPlayer.play(AssetSource(defaultAudio!));
+    } else {
+      await audioPlayer.play(AssetSource('sounds/workout.mp3'));
+    }
+    //
   }
 
   void playRestAudio() async {
@@ -230,39 +245,52 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                   SizedBox(height: 20),
-                  Text(
-                    isWorkPhase
-                        ? exercises[currentExerciseIndex]['name']
-                        : 'Rest',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: isWorkPhase ? Colors.green : Colors.orange,
+                  if (isWorkoutStarted)
+                    Text(
+                      isWorkPhase
+                          ? exercises[currentExerciseIndex]['name']
+                          : 'Rest',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: isWorkPhase ? Colors.green : Colors.orange,
+                      ),
                     ),
-                  ),
                   SizedBox(height: 20),
+                  if (isWorkoutStarted)
+                    if (isWorkPhase &&
+                        exercises[currentExerciseIndex]['description'] !=
+                            null) // Show description if available
+                      Text(
+                        exercises[currentExerciseIndex]['description'],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16),
+                      ),
                   SizedBox(height: 20),
-                  Text(
-                    '${timerSeconds ~/ 60}:${(timerSeconds % 60).toString().padLeft(2, '0')}',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  ),
+                  if (isWorkoutStarted)
+                    Text(
+                      '${timerSeconds ~/ 60}:${(timerSeconds % 60).toString().padLeft(2, '0')}',
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
                   SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: togglePause,
-                        child: Text(isPaused ? 'Resume' : 'Pause'),
-                      ),
-                      SizedBox(width: 20),
-                      ElevatedButton(
-                        onPressed: endWorkout,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                  if (isWorkoutStarted)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: togglePause,
+                          child: Text(isPaused ? 'Resume' : 'Pause'),
                         ),
-                        child: Text('End Workout'),
-                      ),
-                    ],
-                  ),
+                        SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: endWorkout,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          child: Text('End Workout'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
