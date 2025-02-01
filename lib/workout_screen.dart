@@ -238,7 +238,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
-                  if (isWorkoutStarted)
+                  if (isWorkoutStarted && sets > 1)
                     Text(
                       'Set $currentSet of $sets',
                       style:

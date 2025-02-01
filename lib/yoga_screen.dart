@@ -14,7 +14,9 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
             {
               'name': 'Downward Dog',
               'duration': 100,
-              'image': 'assets/images/yoga/downward-facingdog.png'
+              'image': 'assets/images/yoga/downward-facingdog.png',
+              'description':
+                  'Stretches your hamstrings and calves. Deepen with pulling you head towards your knees ',
             },
             {
               'name': 'Plank',
@@ -32,6 +34,16 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
               'image': 'assets/images/yoga/boundangle.jpg'
             },
             {
+              'name': 'Seated Twist Right',
+              'duration': 60,
+              'image': 'assets/images/yoga/twist.jpg'
+            },
+            {
+              'name': 'Seated Twist Left',
+              'duration': 60,
+              'image': 'assets/images/yoga/twist.jpg'
+            },
+            {
               'name': 'Bridge Pose',
               'duration': 120,
               'image': 'assets/images/yoga/bridgepose.png'
@@ -44,7 +56,10 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
             {
               'name': 'Shavasana (corpse)',
               'duration': 180,
-              'image': 'assets/images/yoga/corpse-pose.jpg'
+              'image': 'assets/images/yoga/corpse-pose.jpg',
+              'description':
+                  'Relax your whole body part by part, lay completely still',
+              'audio': 'sounds/pre-meals.mp3',
             },
           ],
           sets: 1,

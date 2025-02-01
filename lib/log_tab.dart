@@ -161,12 +161,15 @@ class _LogScreenState extends State<LogScreen> {
                   children: [
                     Text(
                       'Total Exercise',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurpleAccent),
                     ),
                     Text(
                       formatDuration(_totalExerciseDuration),
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.deepPurpleAccent),
                     ),
                   ],
                 ),
@@ -174,12 +177,15 @@ class _LogScreenState extends State<LogScreen> {
                   children: [
                     Text(
                       'Total Meditation',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurpleAccent),
                     ),
                     Text(
                       formatDuration(_totalMeditationDuration),
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.deepPurpleAccent),
                     ),
                   ],
                 ),
