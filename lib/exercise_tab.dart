@@ -7,35 +7,10 @@ import 'package:flutter/material.dart';
 class ExerciseTab extends StatelessWidget {
   const ExerciseTab({super.key});
 
-  void _launchExerciseRoutine(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => LowerBodyWorkoutScreen()));
-  }
-
-  void _launchUpper(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => UpperBodyWorkoutScreen()));
-  }
-
-  void _launchYoga(BuildContext context) {
-    // Code to launch yoga routine
-    // For example:
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => YogaScreen()));
-  }
-
-  void _launchPranayama(BuildContext context) {
-    // Code to launch pranayama routine
-    // For example:
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => PranayamaScreen()));
-  }
-
-  void _launchKickboxing(BuildContext context) {
+  void _launch(BuildContext context, screen) {
     // Code to launch kickboxing routine
     // For example:
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => KickboxingScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 
   @override
@@ -49,28 +24,38 @@ class ExerciseTab extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              onPressed: () => _launchExerciseRoutine(context),
+              onPressed: () => _launch(context, LowerBodyWorkoutScreen()),
               child: Text('Lower body strength'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _launchUpper(context),
+              onPressed: () => _launch(context, UpperBodyWorkoutScreen()),
               child: Text('Upper Body Strength'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _launchYoga(context),
+              onPressed: () => _launch(context, YogaScreen()),
               child: Text('Yoga'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _launchPranayama(context),
+              onPressed: () => _launch(context, PranayamaScreen()),
               child: Text('Pranayama'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _launchKickboxing(context),
+              onPressed: () => _launch(context, KickboxingScreen()),
               child: Text('Kickboxing'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _launch(context, KeegalScreen()),
+              child: Text('Keegal'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _launch(context, FacerciseScreen()),
+              child: Text('Facial Exercises'),
             ),
           ],
         ),

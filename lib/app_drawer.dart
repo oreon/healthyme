@@ -58,7 +58,7 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context); // Close the drawer
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LogDayScreen()),
+                MaterialPageRoute(builder: (context) => JournalScreen()),
               );
             },
           ),

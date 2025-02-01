@@ -201,7 +201,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
             ),
             child: Container(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.52,
+              height: MediaQuery.of(context).size.height * 0.50,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(15),

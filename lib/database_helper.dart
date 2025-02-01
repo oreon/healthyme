@@ -67,6 +67,14 @@ class DatabaseHelper {
   ''');
 
     await db.execute('''
+      CREATE TABLE  IF NOT EXISTS journal(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entry TEXT,
+        date TEXT
+      )
+    ''');
+
+    await db.execute('''
     CREATE TABLE IF NOT EXISTS workout_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
@@ -164,6 +172,22 @@ class DatabaseHelper {
     });
   }
 
+  Future<int> insertJournalEntry(String entry) async {
+    Database db = await database;
+    return await db.insert(
+      'journal',
+      {
+        'entry': entry,
+        'date': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getJournalEntries() async {
+    Database db = await database;
+    return await db.query('journal', orderBy: 'date DESC');
+  }
+
   Future<void> logFood(String date, String mealType, String food) async {
     final db = await database;
     await db.insert('food_logs', {
@@ -202,5 +226,10 @@ class DatabaseHelper {
       'duration': duration,
       'time': DateTime.now().toIso8601String(), // Add timestamp
     });
+  }
+
+  Future<int> deleteJournalEntry(int id) async {
+    Database db = await database;
+    return await db.delete('journal', where: 'id = ?', whereArgs: [id]);
   }
 }

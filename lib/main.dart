@@ -17,14 +17,14 @@ import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    final duration = inputData!["duration"] as int;
-    var remainingTime = duration;
+    // final duration = inputData!["duration"] as int;
+    // var remainingTime = duration;
 
-    // Simulate the timer logic
-    while (remainingTime > 0) {
-      await Future.delayed(Duration(seconds: 1));
-      remainingTime--;
-    }
+    // // Simulate the timer logic
+    // while (remainingTime > 0) {
+    //   await Future.delayed(Duration(seconds: 1));
+    //   remainingTime--;
+    // }
 
     return Future.value(true);
   });
@@ -43,8 +43,6 @@ Future<void> main() async {
 class FitnessTrackerApp extends StatelessWidget {
   final Config config;
   const FitnessTrackerApp({required this.config, super.key});
-
-  //MyApp({required this.config});
 
   @override
   Widget build(BuildContext context) {

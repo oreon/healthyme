@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this package
 import 'dart:async';
 import 'database_helper.dart';
 import 'main.dart'; // Import the DatabaseHelper class
@@ -8,8 +9,7 @@ import 'main.dart'; // Import the DatabaseHelper class
 abstract class MeditationScreen extends StatefulWidget {
   final String? audioFile; // Audio file for the meditation (optional)
   final String meditationName; // Name of the meditation
-  final String
-      description; //='Relax your body as much as possible'; // Description of the meditation
+  final String description; // Description of the meditation
 
   const MeditationScreen({
     super.key,
@@ -29,6 +29,10 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   bool isPaused = false;
   late Timer timer;
 
+  // Local notifications setup
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,7 @@ abstract class MeditationScreenState<T extends MeditationScreen>
       callbackDispatcher,
       isInDebugMode: true,
     );
+    _initializeNotifications();
   }
 
   @override
@@ -53,13 +58,63 @@ abstract class MeditationScreenState<T extends MeditationScreen>
     super.didChangeAppLifecycleState(state);
 
     // Handle app lifecycle changes
-    if (state == AppLifecycleState.resumed) {
-      // App is back in the foreground
-      if (isPlaying && timerSeconds <= 0) {
-        // If meditation ended while the app was in the background
-        playEndAudio();
+    if (state == AppLifecycleState.paused) {
+      // App is minimized
+      if (isPlaying) {
+        // Schedule a background task to handle the timer
+        Workmanager().registerOneOffTask(
+          "meditationTask",
+          "meditationTask",
+          inputData: <String, dynamic>{
+            "duration": timerSeconds,
+          },
+        );
       }
+    } else if (state == AppLifecycleState.resumed) {
+      // App is back in the foreground
+      Workmanager().cancelByTag("meditationTask"); // Cancel the background task
     }
+  }
+
+  void _initializeNotifications() async {
+    // Android initialization settings
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    // iOS initialization settings
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    // Combined initialization settings
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  void _showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'meditation_channel',
+      'Meditation Timer',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      platformChannelSpecifics,
+    );
   }
 
   void playStartAudio() async {
@@ -95,15 +150,6 @@ abstract class MeditationScreenState<T extends MeditationScreen>
         }
       });
     });
-
-    // Start a background task
-    Workmanager().registerOneOffTask(
-      "meditationTask",
-      "meditationTask",
-      inputData: <String, dynamic>{
-        "duration": selectedDuration! * 60,
-      },
-    );
   }
 
   Future<void> pauseMeditation() async {
@@ -135,6 +181,10 @@ abstract class MeditationScreenState<T extends MeditationScreen>
       isPlaying = false;
       isPaused = false;
     });
+
+    // Show a notification when the meditation ends
+    _showNotification(
+        'Meditation Complete', 'Your meditation session has ended.');
 
     // Log the meditation session
     await _logMeditation();

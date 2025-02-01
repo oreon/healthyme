@@ -109,6 +109,15 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
     }
   }
 
+  // Calculate remaining time in minutes and seconds
+  String _getRemainingTime() {
+    int totalDuration = _selectedExerciseDuration * 60;
+    int remainingTime = totalDuration - _elapsedTime;
+    int minutes = remainingTime ~/ 60;
+    int seconds = remainingTime % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -122,95 +131,104 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
       appBar: AppBar(
         title: Text('Box Breathing Exercise'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!_isExerciseStarted) ...[
-              Text(
-                'Select Breath Duration (seconds):',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: _breathDurations.map((duration) {
-                  return ChoiceChip(
-                    label: Text('$duration sec'),
-                    selected: _selectedBreathDuration == duration,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedBreathDuration = duration;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Select Exercise Duration (minutes):',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: _exerciseDurations.map((duration) {
-                  return ChoiceChip(
-                    label: Text('$duration min'),
-                    selected: _selectedExerciseDuration == duration,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedExerciseDuration = duration;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _startExercise,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (!_isExerciseStarted) ...[
+                Text(
+                  'Select Breath Duration (seconds):',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-                child: Text(
-                  'Start Exercise',
-                  style: TextStyle(fontSize: 20),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _breathDurations.map((duration) {
+                    return ChoiceChip(
+                      label: Text('$duration sec'),
+                      selected: _selectedBreathDuration == duration,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedBreathDuration = duration;
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
-              ),
+                SizedBox(height: 20),
+                Text(
+                  'Select Exercise Duration (minutes):',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: _exerciseDurations.map((duration) {
+                    return ChoiceChip(
+                      label: Text('$duration min'),
+                      selected: _selectedExerciseDuration == duration,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedExerciseDuration = duration;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _startExercise,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: Text(
+                    'Start Exercise',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+              ],
+              if (_isExerciseStarted) ...[
+                Text(
+                  _getStepText(),
+                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                // Make the animation square-shaped
+                Container(
+                  width: MediaQuery.of(context).size.width *
+                      0.6, // 60% of screen width
+                  height: MediaQuery.of(context).size.width *
+                      0.6, // Same as width to make it square
+                  child: CircularProgressIndicator(
+                    value: _animation.value,
+                    strokeWidth: 10,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Remaining Time: ${_getRemainingTime()}',
+                  style: TextStyle(fontSize: 22),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _stopExercise,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: Text(
+                    'Stop Exercise',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+              ],
             ],
-            if (_isExerciseStarted) ...[
-              Text(
-                _getStepText(),
-                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 20),
-              CircularProgressIndicator(
-                value: _animation.value,
-                strokeWidth: 10,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Elapsed Time: $_elapsedTime seconds',
-                style: TextStyle(fontSize: 22),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _stopExercise,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                ),
-                child: Text(
-                  'Stop Exercise',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ),
     );

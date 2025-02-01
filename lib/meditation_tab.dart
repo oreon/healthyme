@@ -45,13 +45,13 @@ class MeditationTab extends StatelessWidget {
             _buildMeditationButton(
               context,
               'Loving Kindness',
-              Colors.purple,
+              Colors.blue,
               const LovingKindnessScreen(),
             ),
             _buildMeditationButton(
               context,
               'Box Breathing',
-              Colors.purple,
+              Colors.redAccent,
               BoxBreathingScreen(),
             ),
           ],

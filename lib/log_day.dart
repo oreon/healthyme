@@ -1,74 +1,139 @@
-// TODO Implement this library.
-
 import 'package:flutter/material.dart';
+import 'database_helper.dart'; // Import the DatabaseHelper class
 
-class LogDayScreen extends StatefulWidget {
-  const LogDayScreen({super.key});
-
+class JournalScreen extends StatefulWidget {
   @override
-  _LogDayScreenState createState() => _LogDayScreenState();
+  _JournalScreenState createState() => _JournalScreenState();
 }
 
-class _LogDayScreenState extends State<LogDayScreen> {
-  final TextEditingController _messageController = TextEditingController();
-  String _aiResponse = '';
+class _JournalScreenState extends State<JournalScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _journalController = TextEditingController();
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  List<Map<String, dynamic>> _journalEntries = [];
 
-  Future<void> _sendMessage() async {
-    final message = _messageController.text.trim();
-    if (message.isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadJournalEntries();
+  }
 
-    // Simulate an API call to DeepSeek AI
+  Future<void> _loadJournalEntries() async {
+    List<Map<String, dynamic>> entries = await _dbHelper.getJournalEntries();
     setState(() {
-      _aiResponse = 'Thinking...';
-    });
-
-    // Replace this with an actual API call
-    await Future.delayed(Duration(seconds: 2));
-
-    setState(() {
-      _aiResponse = _getMotivationalResponse(message);
+      _journalEntries = entries;
     });
   }
 
-  String _getMotivationalResponse(String message) {
-    // Simulate AI response
-    if (message.toLowerCase().contains("exercising")) {
-      return "You got this! Even a small workout is better than none. Start with 5 minutes!";
+  Future<void> _saveJournalEntry() async {
+    String entry = _journalController.text.trim();
+    if (entry.isNotEmpty) {
+      await _dbHelper.insertJournalEntry(entry);
+      _journalController.clear();
+      await _loadJournalEntries(); // Refresh the list of entries
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Journal entry saved!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please write something before saving.')),
+      );
     }
-    return "Stay positive and keep pushing forward!";
+  }
+
+  Future<void> _deleteJournalEntry(int id) async {
+    await _dbHelper.deleteJournalEntry(id);
+    await _loadJournalEntries(); // Refresh the list of entries
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Journal entry deleted!')),
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _journalController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Talk to AI'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                labelText: 'Hows your day going ....',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 8,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _sendMessage,
-              child: Text('Send'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              _aiResponse,
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
+        title: Text('Journal Your Day'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Write'),
+            Tab(text: 'History'),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // Write Journal Tab
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _journalController,
+                    maxLines: null, // Allows the text field to expand
+                    decoration: InputDecoration(
+                      hintText: 'Write about your day...',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _saveJournalEntry,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                  child: Text(
+                    'Save Entry',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Journal History Tab
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _journalEntries.isEmpty
+                ? Center(
+                    child: Text(
+                      'No journal entries yet.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _journalEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = _journalEntries[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(entry['entry']),
+                          subtitle: Text(
+                            'Date: ${DateTime.parse(entry['date']).toLocal().toString()}',
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteJournalEntry(entry['id']),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
