@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 class BreathMeditationScreen extends MeditationScreen {
   const BreathMeditationScreen({super.key})
       : super(
-          description: 'Relax your body and focus on your breath',
-          audioFile: 'sounds/3_min_breath.mp3',
+          description:
+              'Relax your body and focus on your breath at the nostrils',
+          audioFile: 'sounds/breath.mp3',
           meditationName: 'Breath Meditation',
         );
 
