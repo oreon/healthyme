@@ -5,7 +5,7 @@ import 'config.dart';
 class AudioRecorderScreen extends StatefulWidget {
   final Config config;
 
-  AudioRecorderScreen({super.key, required this.config});
+  const AudioRecorderScreen({super.key, required this.config});
 
   @override
   _AudioRecorderScreenState createState() => _AudioRecorderScreenState();

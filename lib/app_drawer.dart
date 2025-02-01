@@ -9,7 +9,7 @@ import 'config.dart';
 class AppDrawer extends StatelessWidget {
   final Config config;
 
-  AppDrawer({required this.config});
+  const AppDrawer({super.key, required this.config});
 
   @override
   Widget build(BuildContext context) {

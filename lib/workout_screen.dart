@@ -100,7 +100,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   }
 
   void playStartAudio() async {
-    await audioPlayer.play(AssetSource('sounds/start.mp3'));
+    await audioPlayer.play(AssetSource('sounds/workout.mp3'));
   }
 
   void playRestAudio() async {
@@ -214,17 +214,15 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    isWorkPhase ? 'Work' : 'Rest',
+                    isWorkPhase
+                        ? exercises[currentExerciseIndex]['name']
+                        : 'Rest',
                     style: TextStyle(
                       fontSize: 20,
                       color: isWorkPhase ? Colors.green : Colors.orange,
                     ),
                   ),
                   SizedBox(height: 20),
-                  Text(
-                    exercises[currentExerciseIndex]['name'],
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
                   SizedBox(height: 20),
                   Text(
                     '${timerSeconds ~/ 60}:${(timerSeconds % 60).toString().padLeft(2, '0')}',

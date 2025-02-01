@@ -71,15 +71,20 @@ class _UpperBodyWorkoutScreenState
               'duration': 45,
               'image': 'assets/images/upper/modified-pushups.gif'
             },
+            // {
+            //   'name': 'Plank jacks',
+            //   'duration': 45,
+            //   'image': 'assets/images/upper/Plank_jacks.gif'
+            // },
             {
-              'name': 'Plank jacks',
+              'name': 'Plank Ups',
               'duration': 45,
-              'image': 'assets/images/upper/Plank_jacks.gif'
+              'image': 'assets/images/upper/Plank_Ups.gif'
             },
             {
-              'name': 'Plank_Ups.gif',
+              'name': 'Pushups',
               'duration': 45,
-              'image': 'assets/images/upper/Plank_ups.gif'
+              'image': 'assets/images/upper/modified-pushups.gif'
             },
             {
               'name': 'Plank to Dolphin',

@@ -1,0 +1,6 @@
+dark theme
+remove app bar
+autoplay meditation audio on notifications
+music for workout
+fix yoga audio for corpse
+create today screen

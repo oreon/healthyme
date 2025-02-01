@@ -1,7 +1,5 @@
 import 'package:healthyme/app_drawer.dart';
 import 'package:healthyme/config.dart';
-import 'package:healthyme/log_day.dart';
-import 'package:healthyme/recoder_screen.dart';
 
 import 'kickboxing_screen.dart';
 import 'notifications_service.dart';
@@ -52,7 +50,11 @@ class FitnessTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fitness Tracker',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        brightness: Brightness.dark, // Set the theme to dark
+        primaryColor: Colors.blue, // Customize other colors if needed
+        //: Colors.blueAccent,
+      ),
       home: HomeScreen(
         config: config,
       ),
