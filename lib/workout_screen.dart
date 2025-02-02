@@ -62,6 +62,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (!isPaused) {
         setState(() {
+          elapsedTime++;
           if (timerSeconds > 0) {
             timerSeconds--;
           } else {

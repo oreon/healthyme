@@ -3,4 +3,9 @@ remove app bar
 autoplay meditation audio on notifications
 music for workout
 fix yoga audio for corpse  todo record audio
-create today screen
+create today screen and add timings 
+
+
+ex 1 of 6 
+no exercise total duration shown
+plank image needs fixing

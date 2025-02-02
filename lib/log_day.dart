@@ -12,6 +12,7 @@ class _JournalScreenState extends State<JournalScreen>
   final TextEditingController _journalController = TextEditingController();
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> _journalEntries = [];
+  String _selectedSentiment = 'neutral'; // Default sentiment
 
   @override
   void initState() {
@@ -30,7 +31,7 @@ class _JournalScreenState extends State<JournalScreen>
   Future<void> _saveJournalEntry() async {
     String entry = _journalController.text.trim();
     if (entry.isNotEmpty) {
-      await _dbHelper.insertJournalEntry(entry);
+      await _dbHelper.insertJournalEntry(entry, _selectedSentiment);
       _journalController.clear();
       await _loadJournalEntries(); // Refresh the list of entries
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,6 +91,51 @@ class _JournalScreenState extends State<JournalScreen>
                   ),
                 ),
                 SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedSentiment = 'positive';
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedSentiment == 'positive'
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                      child: Text('Positive'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedSentiment = 'neutral';
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedSentiment == 'neutral'
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      child: Text('Neutral'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedSentiment = 'negative';
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedSentiment == 'negative'
+                            ? Colors.red
+                            : Colors.grey,
+                      ),
+                      child: Text('Negative'),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _saveJournalEntry,
                   style: ElevatedButton.styleFrom(
@@ -117,8 +163,14 @@ class _JournalScreenState extends State<JournalScreen>
                     itemCount: _journalEntries.length,
                     itemBuilder: (context, index) {
                       final entry = _journalEntries[index];
+                      final sentiment = entry['sentiment'] ?? 'neutral';
                       return Card(
                         margin: EdgeInsets.symmetric(vertical: 8),
+                        color: sentiment == 'positive'
+                            ? Colors.green[50]
+                            : sentiment == 'negative'
+                                ? Colors.red[50]
+                                : Colors.grey[50],
                         child: ListTile(
                           title: Text(entry['entry']),
                           subtitle: Text(

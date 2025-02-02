@@ -1,5 +1,6 @@
 import 'package:healthyme/app_drawer.dart';
 import 'package:healthyme/config.dart';
+import 'package:healthyme/today_screen.dart';
 
 import 'kickboxing_screen.dart';
 import 'notifications_service.dart';
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _tabs = [
     ExerciseTab(),
     MeditationTab(),
-    DietTab(),
+    TodayScreen(),
     LogScreen(),
   ];
 

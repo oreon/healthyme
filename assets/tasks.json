@@ -1,0 +1,25 @@
+[
+    {
+      "taskname": "Morning Meditation",
+      "tasktype": "meditation",
+      "screenName": "MeditationScreen"
+    },
+    {
+        "taskname": "Journal dreams",
+        "tasktype": "meditation",
+        "screenName": "MeditationScreen"
+      },
+    {
+      "taskname": "Evening Exercise",
+      "tasktype": "exercise",
+      "screenName": "ExerciseScreen"
+    },
+    {
+      "taskname": "Drink Water",
+      "tasktype": "general"
+    },
+    {
+      "taskname": "Cold Shower",
+      "tasktype": "general"
+    }
+  ]

@@ -21,9 +21,16 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'fitness_tracker.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE journal ADD COLUMN sentiment TEXT');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -84,6 +91,38 @@ class DatabaseHelper {
       time TEXT NOT NULL
     )
   ''');
+
+    await db.execute('''
+      CREATE TABLE completed_tasks(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        taskname TEXT,
+        tasktype TEXT,
+        date TEXT
+      )
+    ''');
+  }
+
+  Future<int> insertCompletedTask(String taskname, String tasktype) async {
+    Database db = await database;
+    return await db.insert(
+      'completed_tasks',
+      {
+        'taskname': taskname,
+        'tasktype': tasktype,
+        'date': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCompletedTasks() async {
+    Database db = await database;
+    return await db.query('completed_tasks', orderBy: 'date DESC');
+  }
+
+  Future<int> getTotalScore() async {
+    Database db = await database;
+    List<Map<String, dynamic>> tasks = await db.query('completed_tasks');
+    return tasks.length * 10; // 10 points per task
   }
 
   Future<int> getTotalMeditationTime(String date) async {
@@ -95,14 +134,14 @@ class DatabaseHelper {
     return result.first['total'] as int? ?? 0; // Return 0 if no logs exist
   }
 
-  Future<int> getTotalScore(String date) async {
-    final db = await database;
-    final result = await db.rawQuery(
-      'SELECT SUM(score) as total FROM scores WHERE date = ?',
-      [date],
-    );
-    return result.first['total'] as int? ?? 0;
-  }
+  // Future<int> getTotalScore(String date) async {
+  //   final db = await database;
+  //   final result = await db.rawQuery(
+  //     'SELECT SUM(score) as total FROM scores WHERE date = ?',
+  //     [date],
+  //   );
+  //   return result.first['total'] as int? ?? 0;
+  // }
 
   Future<List<Map<String, dynamic>>> getLogsByDate(String date) async {
     final db = await database;
@@ -172,13 +211,14 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> insertJournalEntry(String entry) async {
+  Future<int> insertJournalEntry(String entry, String sentiment) async {
     Database db = await database;
     return await db.insert(
       'journal',
       {
         'entry': entry,
         'date': DateTime.now().toIso8601String(),
+        'sentiment': sentiment,
       },
     );
   }
