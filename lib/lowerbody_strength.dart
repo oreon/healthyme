@@ -99,7 +99,7 @@ class _UpperBodyWorkoutScreenState
             {
               'name': 'Plank',
               'duration': 50,
-              'image': 'assets/images/upper/plank.png'
+              'image': 'assets/images/upper/plank.webp'
             },
           ],
           sets: 3,

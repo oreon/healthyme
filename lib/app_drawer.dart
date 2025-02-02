@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:healthyme/log_day.dart';
+import 'package:healthyme/journal_screen.dart';
 import 'package:healthyme/profile_screen.dart';
 import 'package:healthyme/recoder_screen.dart';
 import 'package:healthyme/talk_to_ai_screen.dart';
