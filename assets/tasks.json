@@ -22,5 +22,22 @@
     {
       "taskname": "Cold Shower",
       "tasktype": "general"
+    },
+    {
+      "taskname": "Yoga",
+      "tasktype": "exercise"
+    },
+    {
+      "taskname": "Pranayama",
+      "tasktype": "exercise"
+    },
+    {
+      "taskname": "Kickboxing",
+      "tasktype": "exercise"
+    },
+    {
+      "taskname": "Wim Hof",
+      "tasktype": "exercise"
     }
+    
   ]

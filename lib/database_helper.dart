@@ -114,14 +114,38 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getCompletedTasks({String? date}) async {
+  // Future<List<Map<String, dynamic>>> getCompletedTasks({String? date}) async {
+  //   Database db = await database;
+  //   final String targetDate = date ?? getTodaysDate();
+
+  //   return await db.query(
+  //     'completed_tasks',
+  //     where: 'date = ?',
+  //     whereArgs: [date],
+  //     orderBy: 'date DESC',
+  //   );
+  // }
+
+//   Usage
+//   final todayTasks = await dbHelper.getCompletedTasks();
+// Get tasks for specific date
+// final specificDateTasks = await dbHelper.getCompletedTasks(
+//   date: DateTime(2023, 10, 30)
+// );
+  Future<List<Map<String, dynamic>>> getCompletedTasks({DateTime? date}) async {
     Database db = await database;
-    final String targetDate = date ?? getTodaysDate();
+    final DateTime targetDate = date ?? DateTime.now();
+
+    // Calculate start and end of the target date
+    final DateTime startOfDay =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final DateTime endOfDay =
+        startOfDay.add(Duration(days: 1)).subtract(Duration(milliseconds: 1));
 
     return await db.query(
       'completed_tasks',
-      where: 'date = ?',
-      whereArgs: [date],
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
       orderBy: 'date DESC',
     );
   }
@@ -282,5 +306,46 @@ class DatabaseHelper {
   Future<int> deleteJournalEntry(int id) async {
     Database db = await database;
     return await db.delete('journal', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> getTodaysScore() async {
+    Database db = await database;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final result = await db.query(
+      'scores',
+      where: 'date = ?',
+      whereArgs: [today],
+    );
+    if (result.isEmpty) return 0;
+    return result.first['score'] as int;
+  }
+
+  Future<void> updateTodaysScore(int score) async {
+    Database db = await database;
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final existingScore = await db.query(
+      'scores',
+      where: 'date = ?',
+      whereArgs: [today],
+    );
+
+    if (existingScore.isEmpty) {
+      await db.insert(
+        'scores',
+        {
+          'date': today,
+          'score': score,
+        },
+      );
+    } else {
+      await db.update(
+        'scores',
+        {
+          'score': score,
+        },
+        where: 'date = ?',
+        whereArgs: [today],
+      );
+    }
   }
 }
