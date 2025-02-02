@@ -54,8 +54,12 @@ class HistoryTab extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 color: _getEntryColor(entry['sentiment']),
                 child: ListTile(
-                  title: Text(entry['entry']),
-                  subtitle: Text('Time: $time'),
+                  title: Text(
+                    entry['entry'],
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  subtitle: Text('Time: $time',
+                      style: TextStyle(color: Colors.grey.shade800)),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => onDeleteEntry(entry['id']),

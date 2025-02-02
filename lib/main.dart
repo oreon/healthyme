@@ -81,9 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Define the tabs
   final List<Widget> _tabs = [
+    TodayScreen(),
     ExerciseTab(),
     MeditationTab(),
-    TodayScreen(),
+    DietTab(),
     LogScreen(),
   ];
 
@@ -106,6 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.accessible_outlined), // Workout icon
+            label: 'Today',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center), // Workout icon
             label: 'Exercise',

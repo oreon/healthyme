@@ -99,6 +99,8 @@ class _UpperBodyWorkoutScreenState
             {
               'name': 'Plank',
               'duration': 50,
+              'description':
+                  'Get in plank position, put your weight on your forearms and brace your stomach as if someone is about to punch you',
               'image': 'assets/images/upper/plank.webp'
             },
           ],

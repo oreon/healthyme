@@ -2,12 +2,13 @@
     {
       "taskname": "Morning Meditation",
       "tasktype": "meditation",
-      "screenName": "MeditationScreen"
+      "screenName": "MeditationScreen",
+      "repeateable": true
     },
     {
         "taskname": "Journal dreams",
         "tasktype": "meditation",
-        "screenName": "MeditationScreen"
+        "screenName": "JournalScreen"
       },
     {
       "taskname": "Evening Exercise",

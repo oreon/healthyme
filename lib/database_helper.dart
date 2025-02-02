@@ -109,14 +109,21 @@ class DatabaseHelper {
       {
         'taskname': taskname,
         'tasktype': tasktype,
-        'date': DateTime.now().toIso8601String(),
+        'date': getTodaysDate(),
       },
     );
   }
 
-  Future<List<Map<String, dynamic>>> getCompletedTasks() async {
+  Future<List<Map<String, dynamic>>> getCompletedTasks({String? date}) async {
     Database db = await database;
-    return await db.query('completed_tasks', orderBy: 'date DESC');
+    final String targetDate = date ?? getTodaysDate();
+
+    return await db.query(
+      'completed_tasks',
+      where: 'date = ?',
+      whereArgs: [date],
+      orderBy: 'date DESC',
+    );
   }
 
   Future<int> getTotalScore() async {
@@ -198,10 +205,14 @@ class DatabaseHelper {
     }).toList();
   }
 
+  String getTodaysDate() {
+    return DateTime.now().toIso8601String().split('T').first;
+  }
+
   Future<void> logActivity(
       String activity, int duration, String comments) async {
     final db = await database;
-    final date = DateTime.now().toIso8601String().split('T').first;
+    final date = getTodaysDate();
     await db.insert('gen_logs', {
       'date': date,
       'activity': activity,
