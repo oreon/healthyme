@@ -1,43 +1,78 @@
 [
+  {
+    "id":1,
+    "taskname": "Drink Water",
+    "tasktype": "general",
+    "description": "Drinking water first thing in moring is great for detox and hydration, try adding rock salt "
+  },{
+    "id":11,
+    "taskname": "Gratitude",
+    "tasktype": "general",
+    "screenName":"JournalScreen"
+  },
+  {
+    "id":2,
+    "taskname": "Yoga",
+    "tasktype": "exercise",
+     "screenName":"YogaScreen"
+  },
+  {
+    "id":3,
+    "taskname": "Pranayama",
+    "tasktype": "exercise",
+     "screenName":"PranayamaScreen"
+  },
+  { "id":4,
+    "taskname": "Kickboxing",
+    "tasktype": "exercise",
+    "screenName":"KickboxingScreen"
+  },
+  {
+    "id":5,
+    "taskname": "Wim Hof",
+    "tasktype": "exercise"
+  },
     {
+      "id":6,
       "taskname": "Morning Meditation",
       "tasktype": "meditation",
       "screenName": "MeditationScreen",
       "repeateable": true
     },
+
     {
+      "id":7,
         "taskname": "Journal dreams",
         "tasktype": "meditation",
         "screenName": "JournalScreen"
       },
-    {
+      {
+        "id":8,
+        "taskname": "Afternoon Meditation",
+        "tasktype": "meditation",
+        "screenName": "MeditationScreen",
+        "repeateable": true
+      },
+    {"id":9,
       "taskname": "Evening Exercise",
       "tasktype": "exercise",
-      "screenName": "ExerciseScreen"
+      "screenName": "UpperBodyWorkoutScreen"
+    },
+    
+    {
+      "id":10,
+      "taskname": "Evening Meditation",
+      "tasktype": "meditation",
+      "screenName": "MeditationScreen",
+      "repeateable": true
     },
     {
-      "taskname": "Drink Water",
-      "tasktype": "general"
-    },
-    {
-      "taskname": "Cold Shower",
-      "tasktype": "general"
-    },
-    {
-      "taskname": "Yoga",
-      "tasktype": "exercise"
-    },
-    {
-      "taskname": "Pranayama",
-      "tasktype": "exercise"
-    },
-    {
-      "taskname": "Kickboxing",
-      "tasktype": "exercise"
-    },
-    {
-      "taskname": "Wim Hof",
-      "tasktype": "exercise"
+      "id":11,
+      "taskname": "Journal",
+      "tasktype": "general",
+      "screenName": "JournalScreen",
+      "repeateable": true
     }
+    
     
   ]

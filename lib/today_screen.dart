@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:healthyme/lowerbody_strength.dart';
 import 'package:healthyme/meditation_screen.dart';
 import 'package:healthyme/meditation_tab.dart';
+import 'package:healthyme/pranayama_screen.dart';
 import 'package:healthyme/yoga_screen.dart';
 import 'dart:convert';
 import 'database_helper.dart';
@@ -45,10 +46,11 @@ class _TodayScreenState extends State<TodayScreen> {
       for (int i = 0; i < _tasks.length; i++) {
         final task = _tasks[i];
         // Check if the task is in the completedTasks list
-        final isCompleted = completedTasks.any((completedTask) =>
-            completedTask['taskname'] == task['taskname'] &&
-            completedTask['date']
-                .startsWith(DateTime.now().toIso8601String().split('T')[0]));
+        final isCompleted = completedTasks.any(
+            (completedTask) => completedTask['taskname'] == task['taskname']);
+        // print(
+        //   '$isCompleted ${task['taskname']}',
+        // );
         _taskCompletionStatus[i] = isCompleted; // Set completion status
       }
     });
@@ -105,7 +107,7 @@ class _TodayScreenState extends State<TodayScreen> {
                       style: TextStyle(
                         color: isCompleted
                             ? Colors.grey
-                            : Colors.black, // Gray out text if completed
+                            : Colors.green, // Gray out text if completed
                       ),
                     ),
                     subtitle: Text('Type: ${task['tasktype']}'),
@@ -117,6 +119,18 @@ class _TodayScreenState extends State<TodayScreen> {
                                 color: Colors.grey),
                             onPressed: () => _completeTask(index),
                           ),
+                    onTap: () => {
+                      if (task['screenName'] != null)
+                        {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  _getScreenByName(task['screenName']),
+                            ),
+                          )
+                        }
+                    },
                   ),
                 );
               },
@@ -125,5 +139,23 @@ class _TodayScreenState extends State<TodayScreen> {
         ],
       ),
     );
+  }
+
+  Widget _getScreenByName(String screenName) {
+    switch (screenName) {
+      case 'MeditationScreen':
+        return MeditationTab();
+      case 'ExerciseScreen':
+        return LowerBodyWorkoutScreen();
+      case 'YogaScreen':
+        return YogaScreen();
+      case 'PranayamaScreen':
+        return PranayamaScreen();
+      default:
+        return Scaffold(
+          appBar: AppBar(title: Text(screenName)),
+          body: Center(child: Text('Screen not found for $screenName')),
+        );
+    }
   }
 }

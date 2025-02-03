@@ -132,20 +132,19 @@ class DatabaseHelper {
 // final specificDateTasks = await dbHelper.getCompletedTasks(
 //   date: DateTime(2023, 10, 30)
 // );
-  Future<List<Map<String, dynamic>>> getCompletedTasks({DateTime? date}) async {
+  Future<List<Map<String, dynamic>>> getCompletedTasks({String? date}) async {
     Database db = await database;
-    final DateTime targetDate = date ?? DateTime.now();
+    final String targetDate =
+        date ?? DateTime.now().toIso8601String().split('T')[0];
+    ;
 
-    // Calculate start and end of the target date
-    final DateTime startOfDay =
-        DateTime(targetDate.year, targetDate.month, targetDate.day);
-    final DateTime endOfDay =
-        startOfDay.add(Duration(days: 1)).subtract(Duration(milliseconds: 1));
-
+    // Query tasks for today's date
     return await db.query(
       'completed_tasks',
-      where: 'date BETWEEN ? AND ?',
-      whereArgs: [startOfDay.toIso8601String(), endOfDay.toIso8601String()],
+      where: 'date LIKE ?', // Match tasks with today's date
+      whereArgs: [
+        '$targetDate%'
+      ], // Use wildcard to match any time on today's date
       orderBy: 'date DESC',
     );
   }
