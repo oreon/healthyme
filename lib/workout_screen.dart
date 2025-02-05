@@ -15,6 +15,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   final String defaultImage;
   final int restDuration; // Rest duration in seconds
   final String? defaultAudio; // Default audio for the entire session
+  final String? motivationString; // Purpose
 
   int currentExerciseIndex = 0;
   int currentSet = 1;
@@ -29,18 +30,20 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   int totalDuration = 0;
   int elapsedTime = 0;
 
-  WorkoutScreenState({
-    required this.exercises,
-    required this.sets,
-    required this.workoutName,
-    required this.restDuration,
-    this.defaultImage = 'assets/images/default.jpg', // Default stock image
-    this.defaultAudio = 'sounds/workout.mp3', // Default
-  });
+  WorkoutScreenState(
+      {required this.exercises,
+      required this.sets,
+      required this.workoutName,
+      required this.restDuration,
+      this.defaultImage = 'assets/images/default.jpg', // Default stock image
+      this.defaultAudio = 'sounds/workout.mp3', // Default
+      this.motivationString =
+          'This will make you feel really good afterwards so just do it'});
 
   @override
   void initState() {
     super.initState();
+    audioPlayer.setReleaseMode(ReleaseMode.loop);
     timerSeconds =
         exercises[currentExerciseIndex]['duration'] as int; // Cast to int
     totalDuration = exercises.fold(
@@ -142,7 +145,8 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   }
 
   void showWorkoutCompleteDialog() {
-    DatabaseHelper().logActivity(workoutName, elapsedTime, '');
+    TextEditingController commentController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) {
@@ -157,15 +161,28 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                 'Total Duration: ${elapsedTime ~/ 60}:${(elapsedTime % 60).toString().padLeft(2, '0')}',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
+              SizedBox(height: 20),
+              TextField(
+                controller: commentController,
+                decoration: InputDecoration(
+                  labelText: 'How do you feel now?',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                String comment = commentController.text.trim();
+                await DatabaseHelper()
+                    .logActivity(workoutName, elapsedTime, comment);
+                await audioPlayer.stop();
                 Navigator.pop(context); // Close the dialog
                 Navigator.pop(context); // Go back to the previous screen
               },
-              child: Text('OK'),
+              child: Text('Submit'),
             ),
           ],
         );
@@ -226,7 +243,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (!isWorkoutStarted) // Show Start Workout button if workout hasn't started
+                  if (!isWorkoutStarted)
                     ElevatedButton(
                       onPressed: startWorkout,
                       style: ElevatedButton.styleFrom(
@@ -239,6 +256,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
+                  if (!isWorkoutStarted) Text(motivationString!),
                   if (isWorkoutStarted && sets > 1)
                     Text(
                       'Set $currentSet of $sets',

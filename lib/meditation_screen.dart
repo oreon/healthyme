@@ -36,6 +36,7 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   @override
   void initState() {
     super.initState();
+    audioPlayer.setReleaseMode(ReleaseMode.loop);
     WidgetsBinding.instance
         .addObserver(this); // Add observer for lifecycle events
     Workmanager().initialize(

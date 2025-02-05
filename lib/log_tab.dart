@@ -137,12 +137,45 @@ class _LogScreenState extends State<LogScreen> {
                     itemCount: _logs.length,
                     itemBuilder: (context, index) {
                       final log = _logs[index];
-                      return ListTile(
-                        title: Text(log['activity']),
-                        subtitle: Text(
-                            'Duration: ${formatDuration(log['duration'] as int)}'), // Cast duration to int
-                        trailing:
-                            Text(formatTime(log['time'])), // Format the time
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: Padding(
+                          // Add padding to the Card's content
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            // Use a Column to arrange title, subtitle, and comments
+                            crossAxisAlignment: CrossAxisAlignment
+                                .start, // Align content to the start
+                            children: [
+                              Row(
+                                // Use a Row for title, subtitle, and time
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(log['activity'],
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight
+                                              .bold)), // Make activity bold
+                                  Text(formatTime(log['time'])),
+                                ],
+                              ),
+                              const SizedBox(height: 8), // Add some spacing
+                              Text(
+                                  'Duration: ${formatDuration(log['duration'] as int)}'),
+                              const SizedBox(height: 8), // Add some spacing
+                              if (log['comments'] != null &&
+                                  log['comments'].isNotEmpty) ...[
+                                // Conditional comments
+                                const Text("Comments:",
+                                    style: TextStyle(
+                                        fontWeight:
+                                            FontWeight.bold)), // Comments label
+                                Text(log['comments']),
+                              ]
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
