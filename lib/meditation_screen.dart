@@ -3,7 +3,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this package
 import 'dart:async';
-import 'database_helper.dart';
+import 'activity_complete_dialog.dart';
+
 import 'main.dart'; // Import the DatabaseHelper class
 
 abstract class MeditationScreen extends StatefulWidget {
@@ -28,6 +29,9 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   bool isPlaying = false;
   bool isPaused = false;
   late Timer timer;
+  String motivation =
+      'Even a short meditation can make you feel relaxed and calm so keep doing meditation snacking and one or two longer sits !
+      + ' It is shown to strength your gray matter and prevent cognitive decline as we age';
 
   // Local notifications setup
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -187,18 +191,15 @@ abstract class MeditationScreenState<T extends MeditationScreen>
     _showNotification(
         'Meditation Complete', 'Your meditation session has ended.');
 
+    WorkoutCompleteDialog(
+      context: context,
+      workoutName: widget.meditationName, // Your workout name variable
+      elapsedTime:
+          (selectedDuration! * 60) - timerSeconds, // Your elapsed time variable
+    ).show();
+
     // Log the meditation session
-    await _logMeditation();
-  }
-
-  Future<void> _logMeditation() async {
-    final dbHelper = DatabaseHelper();
-    await dbHelper.logActivity(
-        widget.meditationName, (selectedDuration! * 60) - timerSeconds, '');
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    //await _logMeditation();
   }
 
   @override

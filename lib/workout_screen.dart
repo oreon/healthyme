@@ -1,3 +1,4 @@
+import 'activity_complete_dialog.dart';
 import 'database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -144,50 +145,13 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     showWorkoutCompleteDialog();
   }
 
-  void showWorkoutCompleteDialog() {
-    TextEditingController commentController = TextEditingController();
-
-    showDialog(
+  void showWorkoutCompleteDialog() async {
+    await audioPlayer.stop();
+    WorkoutCompleteDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Workout Complete!'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Great job! You’ve finished your $workoutName session.'),
-              SizedBox(height: 10),
-              Text(
-                'Total Duration: ${elapsedTime ~/ 60}:${(elapsedTime % 60).toString().padLeft(2, '0')}',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: commentController,
-                decoration: InputDecoration(
-                  labelText: 'How do you feel now?',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                String comment = commentController.text.trim();
-                await DatabaseHelper()
-                    .logActivity(workoutName, elapsedTime, comment);
-                await audioPlayer.stop();
-                Navigator.pop(context); // Close the dialog
-                Navigator.pop(context); // Go back to the previous screen
-              },
-              child: Text('Submit'),
-            ),
-          ],
-        );
-      },
-    );
+      workoutName: workoutName, // Your workout name variable
+      elapsedTime: elapsedTime, // Your elapsed time variable
+    ).show();
   }
 
   @override
