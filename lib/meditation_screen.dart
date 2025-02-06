@@ -29,9 +29,9 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   bool isPlaying = false;
   bool isPaused = false;
   late Timer timer;
-  String motivation =
-      'Even a short meditation can make you feel relaxed and calm so keep doing meditation snacking and one or two longer sits !
-      + ' It is shown to strength your gray matter and prevent cognitive decline as we age';
+  // String motivation =
+  //     'Even a short meditation can make you feel relaxed and calm so keep doing meditation snacking and one or two longer sits !
+  //     + ' It is shown to strength your gray matter and prevent cognitive decline as we age';
 
   // Local notifications setup
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =

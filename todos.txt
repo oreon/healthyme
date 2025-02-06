@@ -9,3 +9,7 @@ create today screen and add timings
 ex 1 of 6 
 no exercise total duration shown
 plank image needs fixing
+log your day not working
+
+
+//description: 'This will help you get in touch with your body and focus on your breath at the nose'
