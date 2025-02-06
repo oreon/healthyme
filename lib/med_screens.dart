@@ -8,6 +8,8 @@ class BreathMeditationScreen extends MeditationScreen {
               'Relax your body and focus on your breath at the nostrils',
           audioFile: 'sounds/breath.mp3',
           meditationName: 'Breath Meditation',
+          motivation:
+              "Breath meditation is shown to increase your attention span, just keep coming back to breath with a smie when the mind wonders",
         );
 
   @override

@@ -5,18 +5,20 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'; /
 import 'dart:async';
 import 'activity_complete_dialog.dart';
 
-import 'main.dart'; // Import the DatabaseHelper class
+import 'main.dart'; // Import the callback dispatcher class
 
 abstract class MeditationScreen extends StatefulWidget {
   final String? audioFile; // Audio file for the meditation (optional)
   final String meditationName; // Name of the meditation
   final String description; // Description of the meditation
+  final String? motivation; // Optional motivation string
 
   const MeditationScreen({
     super.key,
     this.audioFile,
     required this.meditationName,
     required this.description,
+    this.motivation, // Add motivation as an optional parameter
   });
 }
 
@@ -29,9 +31,6 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   bool isPlaying = false;
   bool isPaused = false;
   late Timer timer;
-  // String motivation =
-  //     'Even a short meditation can make you feel relaxed and calm so keep doing meditation snacking and one or two longer sits !
-  //     + ' It is shown to strength your gray matter and prevent cognitive decline as we age';
 
   // Local notifications setup
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -249,6 +248,20 @@ abstract class MeditationScreenState<T extends MeditationScreen>
                         selectedDuration != null ? startMeditation : null,
                     child: Text('Start Meditation'),
                   ),
+                  if (widget.motivation !=
+                      null) // Display motivation if provided
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        widget.motivation!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                 ],
               ),
             if (isPlaying)

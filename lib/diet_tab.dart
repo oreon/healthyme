@@ -23,9 +23,7 @@ class _DietTabState extends State<DietTab> {
 
   Future<void> _logCustomFood() async {
     if (_foodController.text.isNotEmpty) {
-      final date = DateTime.now().toIso8601String().split('T').first;
-      await DatabaseHelper()
-          .logActivity(_foodController.text, 0, _foodController.text);
+      await DatabaseHelper().logActivity("Snack", 0, _foodController.text);
       _foodController.clear();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Food logged!')),
