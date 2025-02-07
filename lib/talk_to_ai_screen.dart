@@ -1,6 +1,7 @@
 // TODO Implement this library.
 
 import 'package:flutter/material.dart';
+import 'package:healthyme/gemini_api.dart';
 
 class TalkToAIScreen extends StatefulWidget {
   const TalkToAIScreen({super.key});
@@ -12,6 +13,9 @@ class TalkToAIScreen extends StatefulWidget {
 class _TalkToAIScreenState extends State<TalkToAIScreen> {
   final TextEditingController _messageController = TextEditingController();
   String _aiResponse = '';
+  //TODO: the key shoud be in a safe storage and not visible in git
+  final String mykey = 'AIzaSyA2jOO0DzX_1oHgc2vhT5wmKnB5lc6IX0M';
+  //final GeminiAPI _geminiAPI = GeminiAPI(apiKey: mykey);
 
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
@@ -23,14 +27,19 @@ class _TalkToAIScreenState extends State<TalkToAIScreen> {
     });
 
     // Replace this with an actual API call
-    await Future.delayed(Duration(seconds: 2));
+    //await Future.delayed(Duration(seconds: 2));
+    String response = await _getMotivationalResponse(message);
 
     setState(() {
-      _aiResponse = _getMotivationalResponse(message);
+      _aiResponse = response;
     });
   }
 
-  String _getMotivationalResponse(String message) {
+  Future<String> _getMotivationalResponse(String message) async {
+    String? response = await GeminiAPI(apiKey: mykey).generateText(message);
+    if (response != null) {
+      return (response);
+    }
     // Simulate AI response
     if (message.toLowerCase().contains("exercis") ||
         message.toLowerCase().contains("workout")) {
