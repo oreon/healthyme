@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthyme/journal_screen.dart';
 import 'package:healthyme/lowerbody_strength.dart';
 import 'package:healthyme/meditation_screen.dart';
 import 'package:healthyme/meditation_tab.dart';
@@ -120,16 +121,15 @@ class _TodayScreenState extends State<TodayScreen> {
                             onPressed: () => _completeTask(index),
                           ),
                     onTap: () => {
-                      if (task['screenName'] != null)
-                        {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  _getScreenByName(task['screenName']),
-                            ),
-                          )
-                        }
+                      // if (task['screenName'] != null)
+                      //{
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => _getScreenByName(task),
+                        ),
+                      )
+                      //}
                     },
                   ),
                 );
@@ -141,7 +141,8 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Widget _getScreenByName(String screenName) {
+  Widget _getScreenByName(dynamic task) {
+    String screenName = task['screenName'] ?? "default";
     switch (screenName) {
       case 'MeditationScreen':
         return MeditationTab();
@@ -151,10 +152,14 @@ class _TodayScreenState extends State<TodayScreen> {
         return YogaScreen();
       case 'PranayamaScreen':
         return PranayamaScreen();
+      case 'JournalScreen':
+        return JournalScreen();
       default:
         return Scaffold(
-          appBar: AppBar(title: Text(screenName)),
-          body: Center(child: Text('Screen not found for $screenName')),
+          appBar: AppBar(title: Text(task['taskname'])),
+          body: Center(
+              child:
+                  Text(task['description'] ?? "Please do $task['taskname']")),
         );
     }
   }
