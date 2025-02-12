@@ -143,11 +143,21 @@ class _TodayScreenState extends State<TodayScreen> {
 
   Widget _getScreenByName(dynamic task) {
     String screenName = task['screenName'] ?? "default";
+    final String name = task['taskname'];
+
+    // Get the current day of the year
+    DateTime now = DateTime.now();
+    int dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+
+    // Check if the day of the year is even or odd
+    bool isEvenDay = dayOfYear % 2 == 0;
+
     switch (screenName) {
       case 'MeditationScreen':
         return MeditationTab();
       case 'ExerciseScreen':
-        return LowerBodyWorkoutScreen();
+        // Return LowerBodyWorkoutScreen on even days, UpperBodyWorkoutScreen on odd days
+        return isEvenDay ? LowerBodyWorkoutScreen() : UpperBodyWorkoutScreen();
       case 'YogaScreen':
         return YogaScreen();
       case 'PranayamaScreen':
@@ -156,10 +166,8 @@ class _TodayScreenState extends State<TodayScreen> {
         return JournalScreen();
       default:
         return Scaffold(
-          appBar: AppBar(title: Text(task['taskname'])),
-          body: Center(
-              child:
-                  Text(task['description'] ?? "Please do $task['taskname']")),
+          appBar: AppBar(title: Text(name)),
+          body: Center(child: Text(task['description'] ?? "Please do $name")),
         );
     }
   }

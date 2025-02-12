@@ -10,6 +10,11 @@
     "tasktype": "general",
     "screenName":"JournalScreen"
   },
+  {"id":9,
+    "taskname": "Strength training",
+    "tasktype": "exercise",
+    "screenName": "ExerciseScreen"
+  },
   {
     "id":2,
     "taskname": "Yoga",
@@ -53,11 +58,12 @@
         "screenName": "MeditationScreen",
         "repeateable": true
       },
-    {"id":9,
-      "taskname": "Evening Exercise",
-      "tasktype": "exercise",
-      "screenName": "UpperBodyWorkoutScreen"
-    },
+   
+    {"id":19,
+    "taskname": "Evening Walk",
+    "tasktype": "exercise",
+    "description": "After your dinner remember to go for a mindful walk "
+  },
     
     {
       "id":10,
