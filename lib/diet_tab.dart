@@ -13,9 +13,9 @@ class _DietTabState extends State<DietTab> {
 
   Future<void> _logMeal(String mealType) async {
     final date = DateTime.now().toIso8601String().split('T').first;
-    await DatabaseHelper().logFood(date, mealType, 'Healthy Meal');
+    // await DatabaseHelper().logFood(date, mealType, 'Healthy Meal');
     await DatabaseHelper().logActivity(mealType, 0, _foodController.text);
-    await DatabaseHelper().logScore(date, 'Healthy $mealType', 10);
+    // await DatabaseHelper().logScore(date, 'Healthy $mealType', 10);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$mealType logged!')),
     );

@@ -13,24 +13,24 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
             exercises: [
               {
                 'name': 'Downward Dog',
-                'duration': 100,
+                'duration': 40,
                 'image': 'assets/images/yoga/downward-facingdog.png',
                 'description':
                     'Stretches your hamstrings and calves. Deepen with pulling you head towards your knees ',
               },
               {
                 'name': 'Plank',
-                'duration': 100,
+                'duration': 20,
                 'image': 'assets/images/yoga/plankpose.png'
               },
               {
                 'name': 'Seated Forward Bend',
-                'duration': 120,
+                'duration': 90,
                 'image': 'assets/images/yoga/seatedforward.jpg'
               },
               {
                 'name': 'Cobblers Pose',
-                'duration': 120,
+                'duration': 60,
                 'image': 'assets/images/yoga/boundangle.jpg'
               },
               {
@@ -45,7 +45,12 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
               },
               {
                 'name': 'Bridge Pose',
-                'duration': 120,
+                'duration': 90,
+                'image': 'assets/images/yoga/bridgepose.png'
+              },
+              {
+                'name': 'Cobra',
+                'duration': 90,
                 'image': 'assets/images/yoga/bridgepose.png'
               },
               {

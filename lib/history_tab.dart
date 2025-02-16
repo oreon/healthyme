@@ -52,10 +52,10 @@ class HistoryTab extends StatelessWidget {
                   DateFormat('h:mm a').format(DateTime.parse(entry['date']));
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                color: _getEntryColor(entry['sentiment']),
+                color: _getEntryColor(entry['sentiment'] ?? 'neutral'),
                 child: ListTile(
                   title: Text(
-                    entry['entry'],
+                    entry['comments'],
                     style: TextStyle(color: Colors.black),
                   ),
                   subtitle: Text('Time: $time',

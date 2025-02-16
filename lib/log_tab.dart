@@ -56,7 +56,7 @@ class _LogScreenState extends State<LogScreen> {
 
     for (final log in logs) {
       // Cast the duration to int
-      final duration = log['duration'] as int;
+      final duration = (log['duration'] ?? 0) as int;
 
       // Debug: Print each log's activity and duration
       print('Activity: ${log['activity']}, Duration: $duration');
@@ -160,9 +160,11 @@ class _LogScreenState extends State<LogScreen> {
                                   Text(formatTime(log['time'])),
                                 ],
                               ),
-                              const SizedBox(height: 8), // Add some spacing
-                              Text(
-                                  'Duration: ${formatDuration(log['duration'] as int)}'),
+                              if (log['duration'] != null)
+                                const SizedBox(height: 8), // Add some spacing
+                              if (log['duration'] != null)
+                                Text(
+                                    'Duration: ${formatDuration((log['duration'] ?? 0) as int)}'),
                               const SizedBox(height: 8), // Add some spacing
                               if (log['comments'] != null &&
                                   log['comments'].isNotEmpty) ...[

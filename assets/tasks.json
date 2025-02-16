@@ -10,6 +10,30 @@
     "tasktype": "general",
     "screenName":"JournalScreen"
   },
+  {
+    "id":5,
+    "taskname": "Wim Hof",
+    "tasktype": "exercise"
+  },
+    {
+      "id":6,
+      "taskname": "Morning Meditation",
+      "tasktype": "meditation",
+      "screenName": "MeditationScreen",
+      "repeateable": true
+    },
+    {
+      "id":26,
+      "taskname": "Light and Grounding",
+      "tasktype": "exercise",
+      "repeateable": false
+    },
+    {
+      "id":27,
+      "taskname": "Morning cardio (Sprint/jog)",
+      "tasktype": "exercise",
+      "repeateable": false
+    },
   {"id":9,
     "taskname": "Strength training",
     "tasktype": "exercise",
@@ -32,18 +56,7 @@
     "tasktype": "exercise",
     "screenName":"KickboxingScreen"
   },
-  {
-    "id":5,
-    "taskname": "Wim Hof",
-    "tasktype": "exercise"
-  },
-    {
-      "id":6,
-      "taskname": "Morning Meditation",
-      "tasktype": "meditation",
-      "screenName": "MeditationScreen",
-      "repeateable": true
-    },
+  
 
     {
       "id":7,

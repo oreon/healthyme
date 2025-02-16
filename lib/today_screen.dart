@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:healthyme/database_helper.dart';
+import 'package:healthyme/default_task_screen.dart';
 import 'package:healthyme/journal_screen.dart';
 import 'package:healthyme/lowerbody_strength.dart';
-import 'package:healthyme/meditation_screen.dart';
+
 import 'package:healthyme/meditation_tab.dart';
 import 'package:healthyme/pranayama_screen.dart';
 import 'package:healthyme/yoga_screen.dart';
 import 'dart:convert';
-import 'database_helper.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'database_helper.dart';
+
 import 'package:flutter/services.dart' show rootBundle;
 
 class TodayScreen extends StatefulWidget {
@@ -165,9 +163,9 @@ class _TodayScreenState extends State<TodayScreen> {
       case 'JournalScreen':
         return JournalScreen();
       default:
-        return Scaffold(
-          appBar: AppBar(title: Text(name)),
-          body: Center(child: Text(task['description'] ?? "Please do $name")),
+        return DefaultTaskScreen(
+          taskName: name,
+          taskDescription: task['description'] ?? " Please do $name",
         );
     }
   }
