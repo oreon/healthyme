@@ -14,7 +14,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   DateTime? _dateOfBirth;
   String _gender = '';
-  double _currentWeight = 0.0;
+  //double _currentWeight = 0.0;
   String? _fastingDay;
   TimeOfDay? _feedingStartTime;
   TimeOfDay? _feedingEndTime;
@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _nameController.text = prefs.getString('name') ?? '';
       _dateOfBirth = DateTime.tryParse(prefs.getString('dateOfBirth') ?? '');
       _gender = prefs.getString('gender') ?? '';
-      _currentWeight = prefs.getDouble('currentWeight') ?? 0.0;
+      // _currentWeight = prefs.getDouble('currentWeight') ?? 0.0;
       _fastingDay = prefs.getString('fastingDay');
 
       // Load feeding times
@@ -75,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.setString(
           'dateOfBirth', _dateOfBirth?.toIso8601String() ?? '');
       await prefs.setString('gender', _gender);
-      await prefs.setDouble('currentWeight', _currentWeight);
+      //await prefs.setDouble('currentWeight', _currentWeight);
       await prefs.setString('fastingDay', _fastingDay ?? 'None');
 
       // Save feeding times
@@ -209,25 +209,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Current Weight (kg)'),
-                keyboardType: TextInputType.number,
-                initialValue:
-                    _currentWeight == 0.0 ? '' : _currentWeight.toString(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your weight';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _currentWeight = double.parse(value!);
-                },
-              ),
+              // SizedBox(height: 20),
+              // TextFormField(
+              //   decoration: InputDecoration(labelText: 'Current Weight (kg)'),
+              //   keyboardType: TextInputType.number,
+              //   // initialValue:
+              //   //     _currentWeight == 0.0 ? '' : _currentWeight.toString(),
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter your weight';
+              //     }
+              //     if (double.tryParse(value) == null) {
+              //       return 'Please enter a valid number';
+              //     }
+              //     return null;
+              //   },
+              //   onSaved: (value) {
+              //     _currentWeight = double.parse(value!);
+              //   },
+              // ),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 decoration:
