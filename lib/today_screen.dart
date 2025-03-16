@@ -12,6 +12,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 class TodayScreen extends StatefulWidget {
+  const TodayScreen({super.key});
+
   @override
   _TodayScreenState createState() => _TodayScreenState();
 }
@@ -19,7 +21,8 @@ class TodayScreen extends StatefulWidget {
 class _TodayScreenState extends State<TodayScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> _tasks = [];
-  Map<int, bool> _taskCompletionStatus = {}; // Track completion status of tasks
+  final Map<int, bool> _taskCompletionStatus =
+      {}; // Track completion status of tasks
   int _todaysScore = 0;
 
   @override

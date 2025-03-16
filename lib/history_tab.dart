@@ -6,6 +6,7 @@ class HistoryTab extends StatelessWidget {
   final Function(int id) onDeleteEntry;
 
   const HistoryTab({
+    super.key,
     required this.journalEntries,
     required this.onDeleteEntry,
   });

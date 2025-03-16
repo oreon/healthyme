@@ -1,5 +1,4 @@
 import 'activity_complete_dialog.dart';
-import 'database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';

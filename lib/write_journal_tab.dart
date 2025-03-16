@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WriteJournalTab extends StatefulWidget {
   final Function(String entry, String sentiment) onSaveEntry;
 
-  const WriteJournalTab({required this.onSaveEntry});
+  const WriteJournalTab({super.key, required this.onSaveEntry});
 
   @override
   _WriteJournalTabState createState() => _WriteJournalTabState();

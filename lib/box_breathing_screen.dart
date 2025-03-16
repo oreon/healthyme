@@ -199,7 +199,7 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
                 ),
                 SizedBox(height: 20),
                 // Make the animation square-shaped
-                Container(
+                SizedBox(
                   width: MediaQuery.of(context).size.width *
                       0.6, // 60% of screen width
                   height: MediaQuery.of(context).size.width *

@@ -73,7 +73,6 @@ class DatabaseHelper {
     Database db = await database;
     final String targetDate =
         date ?? DateTime.now().toIso8601String().split('T')[0];
-    ;
 
     // Query tasks for today's date
     return await db.query(

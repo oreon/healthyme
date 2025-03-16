@@ -5,6 +5,8 @@ import 'history_tab.dart';
 import 'write_journal_tab.dart'; // Import the DatabaseHelper class
 
 class JournalScreen extends StatefulWidget {
+  const JournalScreen({super.key});
+
   @override
   _JournalScreenState createState() => _JournalScreenState();
 }
