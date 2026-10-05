@@ -1,86 +1,95 @@
-// TODO Implement this library.
-
 import 'package:flutter/material.dart';
-import 'package:healthyme/gemini_api.dart';
+
+import 'micro_llm.dart';
 
 class TalkToAIScreen extends StatefulWidget {
   const TalkToAIScreen({super.key});
 
   @override
-  _TalkToAIScreenState createState() => _TalkToAIScreenState();
+  State<TalkToAIScreen> createState() => _TalkToAIScreenState();
 }
 
 class _TalkToAIScreenState extends State<TalkToAIScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final MicroLlm _model = MicroLlm();
   String _aiResponse = '';
-  //TODO: the key shoud be in a safe storage and not visible in git
-  final String mykey = 'AIzaSyA2jOO0DzX_1oHgc2vhT5wmKnB5lc6IX0M';
-  //final GeminiAPI _geminiAPI = GeminiAPI(apiKey: mykey);
+  String _lastText = '';
+  String _lastAction = '';
+  bool _busy = false;
 
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
-
-    // Simulate an API call to DeepSeek AI
+    setState(() => _busy = true);
+    final reply = await _model.reply(message);
+    if (!mounted) return;
     setState(() {
-      _aiResponse = 'Thinking...';
-    });
-
-    // Replace this with an actual API call
-    //await Future.delayed(Duration(seconds: 2));
-    String response = await _getMotivationalResponse(message);
-
-    setState(() {
-      _aiResponse = response;
+      _busy = false;
+      _lastText = message;
+      _lastAction = reply.action;
+      _aiResponse = reply.text;
     });
   }
 
-  Future<String> _getMotivationalResponse(String message) async {
-    String? response = await GeminiAPI(apiKey: mykey).generateText(message);
-    if (response != null) {
-      return (response);
-    }
-    // Simulate AI response
-    if (message.toLowerCase().contains("exercis") ||
-        message.toLowerCase().contains("workout")) {
-      return "You got this! Even a small workout is better than none. Start with 5 minutes!";
-    }
-    if (message.toLowerCase().contains("meditat") ||
-        message.toLowerCase().contains("breath")) {
-      return "Meditation keeps your brain young and helps you reach flow state, its a great investment";
-    }
-    return "Stay positive and keep pushing forward!";
+  Future<void> _learn(bool helped) async {
+    if (_lastText.isEmpty || _lastAction.isEmpty) return;
+    await _model.learn(text: _lastText, action: _lastAction, helped: helped);
+    if (!mounted) return;
+    setState(() {
+      _aiResponse = helped
+          ? 'Saved. Next time a similar note will lean this way.'
+          : 'Saved. Next time a similar note will try the other action.';
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Talk to AI'),
-      ),
+      appBar: AppBar(title: const Text('Talk to AI')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Text(
+              'On this device only. No cloud model. It shifts after you say whether the suggestion helped.',
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _messageController,
-              decoration: InputDecoration(
-                labelText: 'Hows your day going ....',
+              decoration: const InputDecoration(
+                labelText: 'What is going on?',
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _sendMessage,
-              child: Text('Send'),
+              onPressed: _busy ? null : _sendMessage,
+              child: Text(_busy ? 'Thinking' : 'Ask'),
             ),
-            SizedBox(height: 20),
-            Text(
-              _aiResponse,
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
+            const SizedBox(height: 16),
+            Text(_aiResponse),
+            if (_lastAction.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _learn(true),
+                      child: const Text('This helped'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _learn(false),
+                      child: const Text('Not this'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

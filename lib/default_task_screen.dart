@@ -1,3 +1,5 @@
+import 'micro_llm.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 
@@ -33,8 +35,11 @@ class DefaultTaskScreen extends StatelessWidget {
                 onPressed: () async {
                   // Insert the completed task into the database
                   await dbHelper.insertCompletedTask(taskName, 'general');
-                  // Navigate back to the TodayScreen
-                  Navigator.pop(context);
+                  await MicroLlm().recordBehavior(taskName);
+                  await AudioPlayer().play(AssetSource('sounds/complete.mp3'));
+                  final score = await dbHelper.getTodaysScore();
+                  await dbHelper.updateTodaysScore(score);
+                  if (context.mounted) Navigator.pop(context);
                 },
                 child: Text('Done'),
               ),
