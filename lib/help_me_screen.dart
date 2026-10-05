@@ -99,6 +99,10 @@ class _HelpPlan extends StatelessWidget {
             Text(guidance,
                 style: const TextStyle(fontSize: 20),
                 textAlign: TextAlign.center),
+            if (actionLabel == 'One-minute pause') ...[
+              const SizedBox(height: 16),
+              const Text('60 seconds', textAlign: TextAlign.center),
+            ],
             const SizedBox(height: 24),
             FilledButton(
               onPressed: () => Navigator.push(

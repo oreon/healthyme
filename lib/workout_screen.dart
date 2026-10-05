@@ -22,7 +22,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   int timerSeconds = 0;
   bool isWorkPhase = true;
   bool isPaused = false;
-  late Timer timer;
+  Timer? timer;
   bool isWorkoutStarted = false; // Track if the workout has started
   final AudioPlayer audioPlayer = AudioPlayer();
   final String restImage = 'assets/images/rest.jpg';
@@ -62,7 +62,12 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   }
 
   void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer?.cancel();
+    timer = Timer.periodic(const Duration(seconds: 1), (tick) {
+      if (!mounted) {
+        tick.cancel();
+        return;
+      }
       if (!isPaused) {
         setState(() {
           elapsedTime++;
@@ -78,24 +83,21 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                 playRestAudio();
               }
             } else {
-              // Switch to next exercise
-              isWorkPhase = true;
-              timerSeconds = exercises[currentExerciseIndex]['duration']
-                  as int; // Cast to int
+              // Switch to the next exercise or set.
               if (currentExerciseIndex < exercises.length - 1) {
                 currentExerciseIndex++;
+              } else if (currentSet < sets) {
+                currentSet++;
+                currentExerciseIndex = 0;
               } else {
-                // Move to the next set
-                if (currentSet < sets) {
-                  currentSet++;
-                  currentExerciseIndex = 0; // Reset to the first exercise
-                } else {
-                  timer.cancel(); // Stop the timer when all sets are done
-
-                  //DatabaseHelper().logActivity(workoutName, totalDuration, '');
-                  showWorkoutCompleteDialog();
-                }
+                timer?.cancel();
+                isWorkoutStarted = false;
+                WakelockPlus.disable();
+                showWorkoutCompleteDialog();
+                return;
               }
+              isWorkPhase = true;
+              timerSeconds = exercises[currentExerciseIndex]['duration'] as int;
               playStartAudio();
             }
           }
@@ -135,7 +137,8 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   }
 
   void endWorkout() {
-    timer.cancel();
+    timer?.cancel();
+    timer = null;
 
     setState(() {
       isWorkoutStarted = false;
@@ -155,7 +158,8 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
 
   @override
   void dispose() {
-    timer.cancel();
+    timer?.cancel();
+    timer = null;
 
     audioPlayer.dispose();
     WakelockPlus.disable();
@@ -282,3 +286,4 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     );
   }
 }
+

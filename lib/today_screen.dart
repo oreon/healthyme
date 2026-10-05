@@ -37,6 +37,7 @@ class _TodayScreenState extends State<TodayScreen> {
     List<Map<String, dynamic>> completedTasks =
         await _dbHelper.getCompletedTasks();
 
+    if (!mounted) return;
     setState(() {
       _tasks = tasks.cast<Map<String, dynamic>>();
       for (int i = 0; i < _tasks.length; i++) {
@@ -154,3 +155,4 @@ class _TodayScreenState extends State<TodayScreen> {
     }
   }
 }
+
