@@ -6,6 +6,7 @@ import 'package:healthyme/lowerbody_strength.dart';
 
 import 'package:healthyme/meditation_tab.dart';
 import 'package:healthyme/pranayama_screen.dart';
+import 'package:healthyme/talk_to_ai_screen.dart';
 import 'package:healthyme/yoga_screen.dart';
 import 'dart:convert';
 
@@ -50,9 +51,6 @@ class _TodayScreenState extends State<TodayScreen> {
         // Check if the task is in the completedTasks list
         final isCompleted = completedTasks.any(
             (completedTask) => completedTask['taskname'] == task['taskname']);
-        // print(
-        //   '$isCompleted ${task['taskname']}',
-        // );
         _taskCompletionStatus[i] = isCompleted; // Set completion status
       }
     });
@@ -69,7 +67,6 @@ class _TodayScreenState extends State<TodayScreen> {
     final task = _tasks[index];
     await _dbHelper.insertCompletedTask(task['taskname'], task['tasktype']);
     final newScore = _todaysScore + 10;
-    //await _dbHelper.updateTodaysScore(newScore);
     setState(() {
       _taskCompletionStatus[index] = true; // Mark task as completed
       _todaysScore = newScore; // Update the score
@@ -91,6 +88,24 @@ class _TodayScreenState extends State<TodayScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TalkToAIScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline),
+                label: const Text('Talk to coach'),
+              ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: _tasks.length,
@@ -100,37 +115,29 @@ class _TodayScreenState extends State<TodayScreen> {
 
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: isCompleted
-                      ? Colors.grey[200]
-                      : null, // Gray out if completed
+                  color: isCompleted ? Colors.grey[200] : null,
                   child: ListTile(
                     title: Text(
                       task['taskname'],
                       style: TextStyle(
-                        color: isCompleted
-                            ? Colors.grey
-                            : Colors.green, // Gray out text if completed
+                        color: isCompleted ? Colors.grey : Colors.green,
                       ),
                     ),
                     subtitle: Text('Type: ${task['tasktype']}'),
                     trailing: isCompleted
-                        ? Icon(Icons.check_circle,
-                            color: Colors.green) // Green tick if completed
+                        ? Icon(Icons.check_circle, color: Colors.green)
                         : IconButton(
                             icon: Icon(Icons.check_circle_outline,
                                 color: Colors.grey),
                             onPressed: () => _completeTask(index),
                           ),
                     onTap: () => {
-                      // if (task['screenName'] != null)
-                      //{
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => _getScreenByName(task),
                         ),
                       )
-                      //}
                     },
                   ),
                 );
@@ -146,18 +153,14 @@ class _TodayScreenState extends State<TodayScreen> {
     String screenName = task['screenName'] ?? "default";
     final String name = task['taskname'];
 
-    // Get the current day of the year
     DateTime now = DateTime.now();
     int dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-
-    // Check if the day of the year is even or odd
     bool isEvenDay = dayOfYear % 2 == 0;
 
     switch (screenName) {
       case 'MeditationScreen':
         return MeditationTab();
       case 'ExerciseScreen':
-        // Return LowerBodyWorkoutScreen on even days, UpperBodyWorkoutScreen on odd days
         return isEvenDay ? LowerBodyWorkoutScreen() : UpperBodyWorkoutScreen();
       case 'YogaScreen':
         return YogaScreen();
