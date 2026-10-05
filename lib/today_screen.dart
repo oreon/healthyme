@@ -21,8 +21,7 @@ class TodayScreen extends StatefulWidget {
 class _TodayScreenState extends State<TodayScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Map<String, dynamic>> _tasks = [];
-  final Map<int, bool> _taskCompletionStatus =
-      {}; // Track completion status of tasks
+  final Map<int, bool> _taskCompletionStatus = {};
   int _todaysScore = 0;
 
   @override
@@ -33,33 +32,26 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Future<void> _loadTasks() async {
-    // Load tasks from JSON file
     String jsonString = await rootBundle.loadString('assets/tasks.json');
     List<dynamic> tasks = json.decode(jsonString);
-
-    // Load completed tasks from the database
     List<Map<String, dynamic>> completedTasks =
         await _dbHelper.getCompletedTasks();
 
     setState(() {
       _tasks = tasks.cast<Map<String, dynamic>>();
-
-      // Initialize completion status for all tasks
       for (int i = 0; i < _tasks.length; i++) {
         final task = _tasks[i];
-        // Check if the task is in the completedTasks list
-        final isCompleted = completedTasks.any(
-            (completedTask) => completedTask['taskname'] == task['taskname']);
-        // print(
-        //   '$isCompleted ${task['taskname']}',
-        // );
-        _taskCompletionStatus[i] = isCompleted; // Set completion status
+        final isCompleted = completedTasks.any((completedTask) =>
+            completedTask['activity'] == task['taskname'] ||
+            completedTask['taskname'] == task['taskname']);
+        _taskCompletionStatus[i] = isCompleted;
       }
     });
   }
 
   Future<void> _loadTodaysScore() async {
-    final score = 0; //await _dbHelper.getTodaysScore();
+    final score = await _dbHelper.getTodaysScore();
+    if (!mounted) return;
     setState(() {
       _todaysScore = score;
     });
@@ -69,10 +61,11 @@ class _TodayScreenState extends State<TodayScreen> {
     final task = _tasks[index];
     await _dbHelper.insertCompletedTask(task['taskname'], task['tasktype']);
     final newScore = _todaysScore + 10;
-    //await _dbHelper.updateTodaysScore(newScore);
+    await _dbHelper.updateTodaysScore(newScore);
+    if (!mounted) return;
     setState(() {
-      _taskCompletionStatus[index] = true; // Mark task as completed
-      _todaysScore = newScore; // Update the score
+      _taskCompletionStatus[index] = true;
+      _todaysScore = newScore;
     });
   }
 
@@ -97,40 +90,34 @@ class _TodayScreenState extends State<TodayScreen> {
               itemBuilder: (context, index) {
                 final task = _tasks[index];
                 final isCompleted = _taskCompletionStatus[index] ?? false;
-
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: isCompleted
-                      ? Colors.grey[200]
-                      : null, // Gray out if completed
+                  color: isCompleted ? Colors.grey[200] : null,
                   child: ListTile(
                     title: Text(
                       task['taskname'],
                       style: TextStyle(
-                        color: isCompleted
-                            ? Colors.grey
-                            : Colors.green, // Gray out text if completed
+                        color: isCompleted ? Colors.grey : Colors.green,
                       ),
                     ),
                     subtitle: Text('Type: ${task['tasktype']}'),
                     trailing: isCompleted
-                        ? Icon(Icons.check_circle,
-                            color: Colors.green) // Green tick if completed
+                        ? Icon(Icons.check_circle, color: Colors.green)
                         : IconButton(
                             icon: Icon(Icons.check_circle_outline,
                                 color: Colors.grey),
                             onPressed: () => _completeTask(index),
                           ),
-                    onTap: () => {
-                      // if (task['screenName'] != null)
-                      //{
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => _getScreenByName(task),
                         ),
-                      )
-                      //}
+                      );
+                      if (!mounted) return;
+                      await _loadTasks();
+                      await _loadTodaysScore();
                     },
                   ),
                 );
@@ -145,19 +132,13 @@ class _TodayScreenState extends State<TodayScreen> {
   Widget _getScreenByName(dynamic task) {
     String screenName = task['screenName'] ?? "default";
     final String name = task['taskname'];
-
-    // Get the current day of the year
     DateTime now = DateTime.now();
     int dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-
-    // Check if the day of the year is even or odd
     bool isEvenDay = dayOfYear % 2 == 0;
-
     switch (screenName) {
       case 'MeditationScreen':
         return MeditationTab();
       case 'ExerciseScreen':
-        // Return LowerBodyWorkoutScreen on even days, UpperBodyWorkoutScreen on odd days
         return isEvenDay ? LowerBodyWorkoutScreen() : UpperBodyWorkoutScreen();
       case 'YogaScreen':
         return YogaScreen();
