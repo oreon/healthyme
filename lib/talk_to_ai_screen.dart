@@ -45,7 +45,7 @@ class _TalkToAIScreenState extends State<TalkToAIScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Talk to AI')),
+      appBar: AppBar(title: const Text('Talk to coach')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

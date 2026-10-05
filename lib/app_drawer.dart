@@ -42,7 +42,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.chat),
-            title: Text('Talk to AI'),
+            title: Text('Talk to coach'),
             onTap: () {
               Navigator.pop(context); // Close the drawer
               Navigator.push(
