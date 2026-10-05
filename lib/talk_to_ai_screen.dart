@@ -1,87 +1,38 @@
-// TODO Implement this library.
-
 import 'package:flutter/material.dart';
-import 'package:healthyme/gemini_api.dart';
+import 'help_me_screen.dart';
 
-class TalkToAIScreen extends StatefulWidget {
+/// Safe fallback until on-device coaching is available.
+class TalkToAIScreen extends StatelessWidget {
   const TalkToAIScreen({super.key});
-
-  @override
-  _TalkToAIScreenState createState() => _TalkToAIScreenState();
-}
-
-class _TalkToAIScreenState extends State<TalkToAIScreen> {
-  final TextEditingController _messageController = TextEditingController();
-  String _aiResponse = '';
-  //TODO: the key shoud be in a safe storage and not visible in git
-  final String mykey = 'AIzaSyA2jOO0DzX_1oHgc2vhT5wmKnB5lc6IX0M';
-  //final GeminiAPI _geminiAPI = GeminiAPI(apiKey: mykey);
-
-  Future<void> _sendMessage() async {
-    final message = _messageController.text.trim();
-    if (message.isEmpty) return;
-
-    // Simulate an API call to DeepSeek AI
-    setState(() {
-      _aiResponse = 'Thinking...';
-    });
-
-    // Replace this with an actual API call
-    //await Future.delayed(Duration(seconds: 2));
-    String response = await _getMotivationalResponse(message);
-
-    setState(() {
-      _aiResponse = response;
-    });
-  }
-
-  Future<String> _getMotivationalResponse(String message) async {
-    String? response = await GeminiAPI(apiKey: mykey).generateText(message);
-    if (response != null) {
-      return (response);
-    }
-    // Simulate AI response
-    if (message.toLowerCase().contains("exercis") ||
-        message.toLowerCase().contains("workout")) {
-      return "You got this! Even a small workout is better than none. Start with 5 minutes!";
-    }
-    if (message.toLowerCase().contains("meditat") ||
-        message.toLowerCase().contains("breath")) {
-      return "Meditation keeps your brain young and helps you reach flow state, its a great investment";
-    }
-    return "Stay positive and keep pushing forward!";
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Talk to AI'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                labelText: 'Hows your day going ....',
-                border: OutlineInputBorder(),
+      appBar: AppBar(title: const Text('Coaching')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.psychology_outlined, size: 56),
+              const SizedBox(height: 20),
+              const Text('AI coaching is unavailable in this preview.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              const Text('You can still use the guided, offline actions in Help Me.',
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(builder: (_) => const HelpMeScreen()),
+                ),
+                child: const Text('Open Help Me'),
               ),
-              maxLines: 3,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _sendMessage,
-              child: Text('Send'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              _aiResponse,
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
