@@ -1,0 +1,97 @@
+[
+  {
+    "id":1,
+    "taskname": "Drink Water",
+    "tasktype": "general",
+    "description": "Drinking water first thing in moring is great for detox and hydration, try adding rock salt "
+  },{
+    "id":11,
+    "taskname": "Gratitude",
+    "tasktype": "general",
+    "screenName":"JournalScreen"
+  },
+  {
+    "id":5,
+    "taskname": "Wim Hof",
+    "tasktype": "exercise"
+  },
+    {
+      "id":6,
+      "taskname": "Meditation",
+      "tasktype": "meditation",
+      "screenName": "MeditationScreen",
+      "repeateable": true
+    },
+    {
+      "id":26,
+      "taskname": "Light and Grounding",
+      "tasktype": "exercise",
+      "repeateable": false
+    },
+    {
+      "id":27,
+      "taskname": "Morning cardio (Sprint/jog)",
+      "tasktype": "exercise",
+      "repeateable": false
+    },
+  {"id":9,
+    "taskname": "Strength training",
+    "tasktype": "exercise",
+    "screenName": "ExerciseScreen"
+  },
+  {
+    "id":2,
+    "taskname": "Yoga",
+    "tasktype": "exercise",
+     "screenName":"YogaScreen"
+  },
+  {
+    "id":3,
+    "taskname": "Pranayama",
+    "tasktype": "exercise",
+     "screenName":"PranayamaScreen"
+  },
+  { "id":4,
+    "taskname": "Kickboxing",
+    "tasktype": "exercise",
+    "screenName":"KickboxingScreen"
+  },
+  
+
+    {
+      "id":7,
+        "taskname": "Journal dreams",
+        "tasktype": "meditation",
+        "screenName": "JournalScreen"
+      },
+      {
+        "id":8,
+        "taskname": " Meditation 2",
+        "tasktype": "meditation",
+        "screenName": "MeditationScreen",
+        "repeateable": true
+      },
+   
+    {"id":19,
+    "taskname": "Evening Walk",
+    "tasktype": "exercise",
+    "description": "After your dinner remember to go for a mindful walk "
+  },
+    
+    {
+      "id":10,
+      "taskname": " Meditation 3",
+      "tasktype": "meditation",
+      "screenName": "MeditationScreen",
+      "repeateable": true
+    },
+    {
+      "id":11,
+      "taskname": "Journal",
+      "tasktype": "general",
+      "screenName": "JournalScreen",
+      "repeateable": true
+    }
+    
+    
+  ]
