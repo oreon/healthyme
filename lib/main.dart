@@ -11,6 +11,7 @@ import 'exercise_tab.dart';
 import 'lowerbody_strength.dart';
 import 'meditation_tab.dart';
 import 'diet_tab.dart';
+import 'help_me_screen.dart';
 import 'log_tab.dart';
 import 'pranayama_screen.dart';
 
@@ -92,6 +93,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Healthy me'),
+        actions: [
+          IconButton(
+            tooltip: 'Help Me',
+            icon: const Icon(Icons.volunteer_activism_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(builder: (_) => const HelpMeScreen()),
+            ),
+          ),
+        ],
       ),
       drawer: AppDrawer(config: widget.config),
       body: _tabs[_selectedIndex],
