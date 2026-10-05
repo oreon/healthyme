@@ -5,13 +5,11 @@ class WorkoutCompleteDialog {
   final BuildContext context;
   final String workoutName;
   final int elapsedTime;
-  //final AudioPlayer audioPlayer; // Add AudioPlayer as a parameter
 
   WorkoutCompleteDialog({
     required this.context,
     required this.workoutName,
     required this.elapsedTime,
-    //required this.audioPlayer, // Initialize AudioPlayer
   });
 
   void show() {
@@ -57,9 +55,11 @@ class WorkoutCompleteDialog {
                   await DatabaseHelper()
                       .logActivity(workoutName, elapsedTime, '');
                 }
+                final current = await DatabaseHelper().getTodaysScore();
+                await DatabaseHelper().updateTodaysScore(current + 10);
 
-                Navigator.pop(context); // Close the dialog
-                Navigator.pop(context); // Go back to the previous screen
+                Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: const Text('Submit'),
             ),

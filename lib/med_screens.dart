@@ -6,7 +6,7 @@ class BreathMeditationScreen extends MeditationScreen {
       : super(
           description:
               'Relax your body and focus on your breath at the nostrils',
-          audioFile: 'sounds/breath.mp3',
+          audioFile: 'sounds/guide_breath.mp3',
           meditationName: 'Breath Meditation',
           motivation:
               "Breath meditation is shown to increase your attention span, just keep coming back to breath with a smie when the mind wonders",
@@ -17,15 +17,13 @@ class BreathMeditationScreen extends MeditationScreen {
 }
 
 class _BreathMeditationScreenState
-    extends MeditationScreenState<BreathMeditationScreen> {
-  // Add any specific state logic for Breath Meditation here
-}
+    extends MeditationScreenState<BreathMeditationScreen> {}
 
 class BodyScanScreen extends MeditationScreen {
   const BodyScanScreen({super.key})
       : super(
           description: 'Relax your body and focus on your breath',
-          audioFile: 'sounds/relax.mp3',
+          audioFile: 'sounds/guide_bodyscan.mp3',
           meditationName: 'Body Scan',
         );
 
@@ -33,15 +31,13 @@ class BodyScanScreen extends MeditationScreen {
   State<BodyScanScreen> createState() => _BodyScanScreenState();
 }
 
-class _BodyScanScreenState extends MeditationScreenState<BodyScanScreen> {
-  // Add any specific state logic for Body Scan here
-}
+class _BodyScanScreenState extends MeditationScreenState<BodyScanScreen> {}
 
 class EatingMeditationScreen extends MeditationScreen {
   const EatingMeditationScreen({super.key})
       : super(
           description: 'Relax your body and focus on your breath',
-          audioFile: 'sounds/pre-meals.mp3',
+          audioFile: 'sounds/guide_eating.mp3',
           meditationName: 'Eating Meditation',
         );
 
@@ -50,15 +46,13 @@ class EatingMeditationScreen extends MeditationScreen {
 }
 
 class _EatingMeditationScreenState
-    extends MeditationScreenState<EatingMeditationScreen> {
-  // Add any specific state logic for Eating Meditation here
-}
+    extends MeditationScreenState<EatingMeditationScreen> {}
 
 class WalkingMeditationScreen extends MeditationScreen {
   const WalkingMeditationScreen({super.key})
       : super(
           description: 'Relax your body and focus on your steps',
-          //audioFile: 'sounds/relax.mp3',
+          audioFile: 'sounds/guide_walking.mp3',
           meditationName: 'Walking Meditation',
         );
 
@@ -68,16 +62,14 @@ class WalkingMeditationScreen extends MeditationScreen {
 }
 
 class _WalkingMeditationScreenState
-    extends MeditationScreenState<WalkingMeditationScreen> {
-  // Add any specific state logic for Walking Meditation here
-}
+    extends MeditationScreenState<WalkingMeditationScreen> {}
 
 class LovingKindnessScreen extends MeditationScreen {
   const LovingKindnessScreen({super.key})
       : super(
           description:
               'Relax your body, put on a budha smile and mentally say may I be happy, may all beings be happy',
-          //audioFile: 'sounds/relax.mp3',
+          audioFile: 'sounds/guide_loving.mp3',
           meditationName: 'Loving kindness Meditation',
         );
 
@@ -86,6 +78,4 @@ class LovingKindnessScreen extends MeditationScreen {
 }
 
 class _LovingKindnessScreenState
-    extends MeditationScreenState<LovingKindnessScreen> {
-  // Add any specific state logic for Walking Meditation here
-}
+    extends MeditationScreenState<LovingKindnessScreen> {}
