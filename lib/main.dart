@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:healthyme/app_drawer.dart';
 import 'package:healthyme/config.dart';
 import 'package:healthyme/today_screen.dart';
@@ -17,16 +18,9 @@ import 'yoga_screen.dart';
 import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
+  // workmanager is Android/iOS only. Web preview has no background isolate.
+  if (kIsWeb) return;
   Workmanager().executeTask((task, inputData) async {
-    // final duration = inputData!["duration"] as int;
-    // var remainingTime = duration;
-
-    // // Simulate the timer logic
-    // while (remainingTime > 0) {
-    //   await Future.delayed(Duration(seconds: 1));
-    //   remainingTime--;
-    // }
-
     return Future.value(true);
   });
 }
@@ -34,10 +28,12 @@ void callbackDispatcher() {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final Config config = await Config.load();
-  // Initialize notifications
-  final notificationService = NotificationService();
-  await notificationService.init();
-  await notificationService.scheduleDailyReminders();
+  // Notifications and timezone plugins have no web implementation.
+  if (!kIsWeb) {
+    final notificationService = NotificationService();
+    await notificationService.init();
+    await notificationService.scheduleDailyReminders();
+  }
   runApp(FitnessTrackerApp(config: config));
 }
 
@@ -50,9 +46,8 @@ class FitnessTrackerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Fitness Tracker',
       theme: ThemeData(
-        brightness: Brightness.dark, // Set the theme to dark
-        primaryColor: Colors.blue, // Customize other colors if needed
-        //: Colors.blueAccent,
+        brightness: Brightness.dark,
+        primaryColor: Colors.blue,
       ),
       home: HomeScreen(
         config: config,
@@ -77,9 +72,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  //final Config config;
 
-  // Define the tabs
   final List<Widget> _tabs = [
     TodayScreen(),
     ExerciseTab(),
@@ -101,30 +94,30 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('Healthy me'),
       ),
       drawer: AppDrawer(config: widget.config),
-      body: _tabs[_selectedIndex], // Display the selected tab
+      body: _tabs[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.accessible_outlined), // Workout icon
+            icon: Icon(Icons.accessible_outlined),
             label: 'Today',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center), // Workout icon
+            icon: Icon(Icons.fitness_center),
             label: 'Exercise',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.self_improvement), // Meditation icon
+            icon: Icon(Icons.self_improvement),
             label: 'Meditation',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant), // Diet icon
+            icon: Icon(Icons.restaurant),
             label: 'Diet',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list), // Log icon
+            icon: Icon(Icons.list),
             label: 'Log',
           ),
         ],
