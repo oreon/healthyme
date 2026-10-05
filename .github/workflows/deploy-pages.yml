@@ -1,4 +1,4 @@
-name: Deploy Flutter web to GitHub Pages
+name: Build Flutter web preview
 
 on:
   push:
@@ -7,19 +7,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -28,8 +19,3 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build web --release --base-href /healthyme/
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
-      - id: deployment
-        uses: actions/deploy-pages@v4
