@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:healthyme/box_breathing_screen.dart';
+import 'package:healthyme/buteyko_screen.dart';
 import 'package:healthyme/database_helper.dart';
+import 'package:healthyme/strong_emotions_screen.dart';
 import 'package:healthyme/default_task_screen.dart';
 import 'package:healthyme/diet_tab.dart';
 import 'package:healthyme/journal_screen.dart';
@@ -290,6 +292,7 @@ class _TodayScreenState extends State<TodayScreen> {
               ),
             ),
           ),
+          _buildImpulseCard(),
           if (_editing)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -334,6 +337,79 @@ class _TodayScreenState extends State<TodayScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Pinned impulse controls, directly under the header: a
+  /// one-minute voiced breathing pause before eating or scrolling,
+  /// and Help Me Now for strong emotions. These are always
+  /// available, independent of the daily plan.
+  Widget _buildImpulseCard() {
+    void openImpulse(String source) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BoxBreathingScreen.impulse(source: source),
+        ),
+      ).then((_) async {
+        await _loadTodaysScore();
+      });
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => openImpulse('before_eating'),
+                      icon: const Icon(Icons.restaurant),
+                      label: const Text('Before eating'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => openImpulse('before_scrolling'),
+                      icon: const Icon(Icons.phone_android),
+                      label: const Text('Before scrolling'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StrongEmotionsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.support),
+                label: const Text('Help Me Now'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -472,6 +548,8 @@ class _TodayScreenState extends State<TodayScreen> {
         return JournalScreen();
       case 'BoxBreathingScreen':
         return BoxBreathingScreen();
+      case 'ButeykoScreen':
+        return ButeykoScreen();
       case 'DietTab':
         return Scaffold(
           appBar: AppBar(title: Text(name)),

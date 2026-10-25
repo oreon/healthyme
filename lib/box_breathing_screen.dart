@@ -1,8 +1,49 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart'; // For playing bell sound
+import 'package:flutter_tts/flutter_tts.dart';
+
+import 'database_helper.dart';
+import 'impulse_breathing.dart';
+import 'points.dart';
+
+/// Speaks the impulse breathing cues aloud. Every call is guarded:
+/// when text-to-speech is unavailable (tests, desktop, no engine)
+/// it fails silently and never blocks the breathing timer.
+class _SpeechCues {
+  final FlutterTts _tts = FlutterTts();
+  bool _failed = false;
+
+  Future<void> speak(String text) async {
+    if (_failed) return;
+    try {
+      await _tts.speak(text);
+    } catch (_) {
+      _failed = true;
+    }
+  }
+
+  Future<void> stop() async {
+    try {
+      await _tts.stop();
+    } catch (_) {
+      // Nothing to stop.
+    }
+  }
+}
 
 class BoxBreathingScreen extends StatefulWidget {
-  const BoxBreathingScreen({super.key});
+  const BoxBreathingScreen({super.key}) : _impulseSource = null;
+
+  /// Launches the screen directly in the impulse preset (Before
+  /// eating / Before scrolling / strong emotions): one minute of
+  /// voiced 4×4 box breathing, no settings first. [source] records
+  /// where the pause was launched from.
+  const BoxBreathingScreen.impulse({super.key, required String source})
+      : _impulseSource = source;
+
+  final String? _impulseSource;
 
   @override
   _BoxBreathingScreenState createState() => _BoxBreathingScreenState();
@@ -25,6 +66,40 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
 
   late AudioPlayer _audioPlayer; // For playing bell sound
 
+  // Impulse preset state.
+  ImpulseBreathingPreset? _preset;
+  final _SpeechCues _speech = _SpeechCues();
+  Timer? _impulseTimer;
+  int _impulseElapsed = 0;
+  bool _impulseRunning = false;
+  bool _impulseFinished = false;
+  late final String _impulseSessionKey;
+
+  bool get _isImpulse => _preset != null;
+
+  int get _impulsePhaseIndex {
+    final preset = _preset!;
+    final cycleSeconds = preset.phaseSeconds.fold(0, (a, b) => a + b);
+    final inCycle = _impulseElapsed % cycleSeconds;
+    var acc = 0;
+    for (var i = 0; i < preset.phaseSeconds.length; i++) {
+      acc += preset.phaseSeconds[i];
+      if (inCycle < acc) return i;
+    }
+    return preset.phaseSeconds.length - 1;
+  }
+
+  int get _impulseSecondInPhase {
+    final preset = _preset!;
+    final cycleSeconds = preset.phaseSeconds.fold(0, (a, b) => a + b);
+    var inCycle = _impulseElapsed % cycleSeconds;
+    for (final phase in preset.phaseSeconds) {
+      if (inCycle < phase) return inCycle;
+      inCycle -= phase;
+    }
+    return 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +118,83 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
           _nextStep();
         }
       });
+
+    if (widget._impulseSource != null) {
+      _preset = impulsePresetFor(widget._impulseSource!);
+      _impulseSessionKey =
+          'impulse:${_preset!.source}:${DateTime.now().toIso8601String()}';
+      // Open straight into the pause — no settings, no questions.
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _startImpulse());
+    }
   }
+
+  // ---- Impulse preset ----------------------------------------------------
+
+  void _startImpulse() {
+    if (!mounted || _impulseRunning || _impulseFinished) return;
+    setState(() {
+      _impulseRunning = true;
+      _impulseElapsed = 0;
+    });
+    _speakCurrentCue();
+    _impulseTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || !_impulseRunning) return;
+      setState(() => _impulseElapsed++);
+      if (_impulseElapsed >= _preset!.totalSeconds) {
+        _finishImpulse(completed: true);
+      } else {
+        _speakCurrentCue();
+      }
+    });
+  }
+
+  void _speakCurrentCue() {
+    final cue = spokenCueFor(
+      preset: _preset!,
+      phaseIndex: _impulsePhaseIndex,
+      secondInPhase: _impulseSecondInPhase,
+    );
+    if (cue != null) {
+      // Fire and forget: speech must never block the timer.
+      unawaited(_speech.speak(cue));
+    }
+  }
+
+  Future<void> _finishImpulse({required bool completed}) async {
+    if (_impulseFinished) return;
+    _impulseFinished = true;
+    _impulseTimer?.cancel();
+    unawaited(_speech.stop());
+    if (mounted) setState(() => _impulseRunning = false);
+
+    final activeSeconds = _impulseElapsed;
+    final earned = sessionPoints(activeSeconds);
+    final db = DatabaseHelper();
+    if (activeSeconds > 0) {
+      await db.awardSessionPoints(_impulseSessionKey, earned);
+    }
+    await db.logCompletion(
+      activity: 'Box Breathing',
+      duration: activeSeconds,
+      comments: 'Impulse pause — source: ${_preset!.source}',
+      completionKind: completed ? 'full' : 'ended_early',
+      points: earned,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(completed
+            ? 'Well done! One calm minute banked.'
+            : 'Pause ended early — well done for starting.'),
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
+  void _stopImpulse() => _finishImpulse(completed: false);
+
+  // ---- Classic (settings-first) flow --------------------------------------
 
   void _nextStep() async {
     // Play bell sound at each transition
@@ -120,6 +271,8 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
 
   @override
   void dispose() {
+    _impulseTimer?.cancel();
+    unawaited(_speech.stop());
     _controller.dispose();
     _audioPlayer.dispose(); // Dispose audio player
     super.dispose();
@@ -127,6 +280,7 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isImpulse) return _buildImpulse(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Box Breathing Exercise'),
@@ -229,6 +383,70 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImpulse(BuildContext context) {
+    final preset = _preset!;
+    final remaining = preset.totalSeconds - _impulseElapsed;
+    final phaseName = preset.phaseNames[_impulsePhaseIndex];
+    final count = _impulseSecondInPhase + 1;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('One-Minute Breathing Pause'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Card(
+              color: Colors.amber[50],
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  preset.reminder,
+                  style: const TextStyle(
+                      fontSize: 17, fontStyle: FontStyle.italic),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              phaseName,
+              style: const TextStyle(
+                  fontSize: 44, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$count',
+              style: TextStyle(fontSize: 28, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            LinearProgressIndicator(
+              value: _impulseElapsed / preset.totalSeconds,
+              minHeight: 8,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Remaining: 0:${remaining.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            OutlinedButton(
+              onPressed: _impulseRunning ? _stopImpulse : null,
+              style:
+                  OutlinedButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('End pause'),
+            ),
+          ],
         ),
       ),
     );

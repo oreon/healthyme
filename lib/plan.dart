@@ -50,6 +50,11 @@ const List<Map<String, dynamic>> activityLibrary = [
     'screenName': 'BoxBreathingScreen',
   },
   {
+    'taskname': 'Buteyko',
+    'tasktype': 'breathing',
+    'screenName': 'ButeykoScreen',
+  },
+  {
     'taskname': 'Journal',
     'tasktype': 'general',
     'screenName': 'JournalScreen',
