@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import the intl package
 import 'completion.dart'; // Feeling faces for feedback editing
 import 'database_helper.dart'; // Import the DatabaseHelper class
+import 'food.dart'; // Eating window derivation + food entries
 
 var exercises = [
   'pranayama',
@@ -33,6 +34,7 @@ class _LogScreenState extends State<LogScreen> {
   DateTime _selectedDate = DateTime.now();
   int _totalExerciseDuration = 0; // Total duration of exercises
   int _totalMeditationDuration = 0; // Total duration of meditations
+  EatingWindow? _eatingWindow; // Derived from the day's meal/snack entries
 
   @override
   void initState() {
@@ -41,11 +43,28 @@ class _LogScreenState extends State<LogScreen> {
   }
 
   Future<void> _fetchLogs() async {
-    final logs = await _dbHelper.getLogsByDate(_formatDate(_selectedDate));
+    final date = _formatDate(_selectedDate);
+    final logs = await _dbHelper.getLogsByDate(date);
+    final snapshots = await _dbHelper.getFoodSnapshots(date: date);
     setState(() {
       _logs = logs;
       _calculateTotals(logs); // Calculate totals after fetching logs
+      _eatingWindow = deriveEatingWindow([
+        ...mealTimesFromLogs(logs),
+        ...snapshots.map((snapshot) => snapshot.capturedAt),
+      ]);
     });
+  }
+
+  String _eatingWindowText() {
+    final window = _eatingWindow!;
+    final format = DateFormat('HH:mm');
+    final duration = EatingWindow.formatDuration(window.duration);
+    if (window.first == window.last) {
+      return 'Eating window: ${format.format(window.first)} ($duration)';
+    }
+    return 'Eating window: ${format.format(window.first)} – '
+        '${format.format(window.last)} ($duration)';
   }
 
   void _calculateTotals(List<Map<String, dynamic>> logs) {
@@ -226,6 +245,16 @@ class _LogScreenState extends State<LogScreen> {
       ),
       body: Column(
         children: [
+          if (_eatingWindow != null)
+            Container(
+              width: double.infinity,
+              color: Colors.green[50],
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Text(
+                _eatingWindowText(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           Expanded(
             child: _logs.isEmpty
                 ? Center(

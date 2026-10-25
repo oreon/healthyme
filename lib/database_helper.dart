@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'food.dart';
 import 'session_draft.dart';
 
 /// Browser-compatible local-first storage for logs and scores.
@@ -12,6 +13,7 @@ class DatabaseHelper {
   static const _pointsEventsKey = 'healthyme.points_events';
   static const _sessionDraftsKey = 'healthyme.session_drafts';
   static const _planKey = 'healthyme.daily_plan';
+  static const _foodSnapshotsKey = 'healthyme.food_snapshots';
   SharedPreferences? _preferences;
 
   factory DatabaseHelper() => _instance;
@@ -266,6 +268,76 @@ class DatabaseHelper {
   Future<void> clearUserPlan() async {
     await (await _prefs).remove(_planKey);
   }
+
+  /// Removes one activity-log row by id. Returns false when absent.
+  Future<bool> deleteActivityLog(int id) async {
+    final logs = await _read(_logsKey);
+    final oldLength = logs.length;
+    logs.removeWhere((row) => row['id'] == id);
+    if (logs.length == oldLength) return false;
+    await _write(_logsKey, logs);
+    return true;
+  }
+
+  /// Records a food snapshot: the record itself (photo path, meal,
+  /// capture timestamp) plus a companion activity-log row — activity =
+  /// the meal, comments 'Food snapshot' — so the entry also appears in
+  /// the Log/History view and counts toward the eating window.
+  Future<FoodSnapshot> addFoodSnapshot({
+    required String photoPath,
+    required String meal,
+    required DateTime capturedAt,
+  }) async {
+    final logId = await insertActivityLog(
+      activity: meal,
+      duration: 0,
+      comments: 'Food snapshot',
+    );
+    final snapshot = FoodSnapshot(
+      id: capturedAt.millisecondsSinceEpoch.toString(),
+      photoPath: photoPath,
+      meal: meal,
+      capturedAt: capturedAt,
+      logId: logId,
+    );
+    final snapshots = await _read(_foodSnapshotsKey);
+    snapshots.add(snapshot.toJson());
+    await _write(_foodSnapshotsKey, snapshots);
+    return snapshot;
+  }
+
+  /// All stored food snapshots, oldest first; pass [date] (yyyy-mm-dd)
+  /// to keep only that day's.
+  Future<List<FoodSnapshot>> getFoodSnapshots({String? date}) async {
+    final rows = await _read(_foodSnapshotsKey);
+    final snapshots = rows.map(FoodSnapshot.fromJson).toList()
+      ..sort((a, b) => a.capturedAt.compareTo(b.capturedAt));
+    if (date == null) return snapshots;
+    return snapshots.where((snapshot) => snapshot.date == date).toList();
+  }
+
+  /// Deletes a food snapshot record and its companion activity-log
+  /// row. Returns the removed snapshot (its photo file is the
+  /// caller's to delete), or null when no record has [id].
+  Future<FoodSnapshot?> deleteFoodSnapshot(String id) async {
+    final rows = await _read(_foodSnapshotsKey);
+    final index = rows.indexWhere((row) => row['id']?.toString() == id);
+    if (index < 0) return null;
+    final removed = FoodSnapshot.fromJson(rows[index]);
+    rows.removeAt(index);
+    await _write(_foodSnapshotsKey, rows);
+    if (removed.logId != null) await deleteActivityLog(removed.logId!);
+    return removed;
+  }
+
+  /// Logs a caffeine entry (coffee/tea with a cup count) as an
+  /// activity-log row with the real timestamp, so it shows in
+  /// Log/History alongside everything else.
+  Future<void> logCaffeine(CaffeineEntry entry) => insertActivityLog(
+        activity: entry.activityLabel,
+        duration: 0,
+        comments: entry.displayLabel,
+      );
 
   Future<int> getTotalScore() async {
     final scores = await _read(_scoresKey);
