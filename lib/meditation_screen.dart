@@ -4,6 +4,10 @@ import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this package
 import 'dart:async';
 import 'activity_complete_dialog.dart';
+import 'completion.dart';
+import 'database_helper.dart';
+import 'points.dart';
+import 'session_draft.dart';
 
 import 'main.dart'; // Import the callback dispatcher class
 
@@ -32,6 +36,22 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   bool isPaused = false;
   late Timer timer;
 
+  /// Unique key for this session instance, generated when the meditation
+  /// starts; the points engine credits the session under this key so a
+  /// re-save can never double-count it. A resumed session reuses the
+  /// key stored in its draft.
+  String? _sessionKey;
+
+  /// A same-day in-progress draft restored on open, if any. While one
+  /// is present the primary button offers Resume instead of Start.
+  SessionDraft? _restoredDraft;
+
+  bool _timerStarted = false;
+
+  /// Set once the session has ended, so leaving the screen afterwards
+  /// does not save a fresh draft.
+  bool _sessionFinished = false;
+
   // Local notifications setup
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -44,17 +64,64 @@ abstract class MeditationScreenState<T extends MeditationScreen>
         .addObserver(this); // Add observer for lifecycle events
     Workmanager().initialize(
       callbackDispatcher,
-      isInDebugMode: true,
     );
     _initializeNotifications();
+    _loadDraft();
   }
 
   @override
   void dispose() {
+    // Checkpoint an unfinished session so it can be resumed today.
+    if (isPlaying && !_sessionFinished) {
+      _saveDraft();
+    }
     WidgetsBinding.instance.removeObserver(this); // Remove observer
     audioPlayer.dispose(); // Release resources
-    timer.cancel(); // Cancel the timer
+    if (_timerStarted) {
+      timer.cancel(); // Cancel the timer
+    }
     super.dispose();
+  }
+
+  /// Restores a same-day unfinished meditation, if one was
+  /// checkpointed: its chosen duration, practiced seconds and the
+  /// original session key.
+  Future<void> _loadDraft() async {
+    final draft = await DatabaseHelper()
+        .getSessionDraft('meditation', widget.meditationName);
+    if (!mounted || draft == null || isPlaying) return;
+    setState(() {
+      _restoredDraft = draft;
+      _sessionKey = draft.sessionKey;
+      selectedDuration = draft.selectedDurationMinutes;
+    });
+  }
+
+  /// Checkpoints the in-progress session so it can be resumed later
+  /// today. Called on pause and on exit.
+  void _saveDraft() {
+    final sessionKey = _sessionKey;
+    final duration = selectedDuration;
+    if (sessionKey == null || duration == null || _sessionFinished) return;
+    DatabaseHelper().saveSessionDraft(SessionDraft(
+      kind: 'meditation',
+      identity: widget.meditationName,
+      sessionKey: sessionKey,
+      activeSeconds: (duration * 60) - timerSeconds,
+      selectedDurationMinutes: duration,
+      date: DatabaseHelper().getTodaysDate(),
+      savedAtMillis: DateTime.now().millisecondsSinceEpoch,
+    ));
+  }
+
+  /// Discards the restored draft so the next start is a fresh session.
+  void startFreshMeditation() {
+    DatabaseHelper().clearSessionDraft('meditation', widget.meditationName);
+    setState(() {
+      _restoredDraft = null;
+      _sessionKey = null;
+      selectedDuration = null;
+    });
   }
 
   @override
@@ -125,8 +192,15 @@ abstract class MeditationScreenState<T extends MeditationScreen>
     await audioPlayer.play(AssetSource('sounds/start.mp3'));
   }
 
-  void playEndAudio() async {
-    await audioPlayer.play(AssetSource('sounds/rest.mp3'));
+  /// Rings the completion bell once (the session's guided audio is
+  /// stopped separately by the caller).
+  void _playCompletionBell() {
+    final bellPlayer = AudioPlayer();
+    bellPlayer.setReleaseMode(ReleaseMode.release);
+    bellPlayer.play(AssetSource('sounds/tibet_bell.wav'));
+    bellPlayer.onPlayerComplete.first
+        .then((_) => bellPlayer.dispose())
+        .catchError((_) {});
   }
 
   Future<void> startMeditation() async {
@@ -137,22 +211,35 @@ abstract class MeditationScreenState<T extends MeditationScreen>
           AssetSource(widget.audioFile!)); // Play the audio file if available
     }
 
+    // A resumed session keeps its stored key (points stay
+    // single-count) and counts down only the unpracticed remainder.
+    _sessionKey ??=
+        'meditation:${widget.meditationName}:${DateTime.now().microsecondsSinceEpoch}';
+    final totalSeconds = selectedDuration! * 60;
+    final resumedSeconds = _restoredDraft?.activeSeconds ?? 0;
     setState(() {
       isPlaying = true;
       isPaused = false;
-      timerSeconds = selectedDuration! * 60; // Convert minutes to seconds
+      timerSeconds = resumedSeconds > 0 && resumedSeconds < totalSeconds
+          ? totalSeconds - resumedSeconds
+          : totalSeconds; // Convert minutes to seconds
     });
 
-    // Start the timer
+    // Start the timer. Ticks are skipped while paused (same pattern as
+    // WorkoutScreenState), so paused wall-clock time is never counted
+    // as practiced time.
+    _timerStarted = true;
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (timerSeconds > 0) {
-          timerSeconds--;
-        } else {
-          timer.cancel(); // Stop the timer when it reaches 0
-          endMeditation();
-        }
-      });
+      if (!isPaused) {
+        setState(() {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+          } else {
+            timer.cancel(); // Stop the timer when it reaches 0
+            endMeditation();
+          }
+        });
+      }
     });
   }
 
@@ -163,6 +250,7 @@ abstract class MeditationScreenState<T extends MeditationScreen>
     setState(() {
       isPaused = true;
     });
+    _saveDraft();
   }
 
   Future<void> resumeMeditation() async {
@@ -175,7 +263,11 @@ abstract class MeditationScreenState<T extends MeditationScreen>
   }
 
   Future<void> endMeditation() async {
-    playEndAudio(); // Play the end audio
+    // Ring the bell once, whether the session ran to completion or
+    // was ended early.
+    final ranToCompletion = timerSeconds <= 0;
+    _sessionFinished = true;
+    _playCompletionBell();
     if (widget.audioFile != null) {
       await audioPlayer.stop(); // Stop the audio if available
     }
@@ -185,16 +277,30 @@ abstract class MeditationScreenState<T extends MeditationScreen>
       isPlaying = false;
       isPaused = false;
     });
+    await DatabaseHelper()
+        .clearSessionDraft('meditation', widget.meditationName);
 
     // Show a notification when the meditation ends
     _showNotification(
         'Meditation Complete', 'Your meditation session has ended.');
 
+    // Active practiced seconds: the countdown only advances while
+    // unpaused, so paused wall-clock time is excluded.
+    final activeSeconds = (selectedDuration! * 60) - timerSeconds;
+    final earnedPoints = sessionPoints(activeSeconds);
+    final sessionKey = _sessionKey;
+    if (sessionKey != null) {
+      await DatabaseHelper().awardSessionPoints(sessionKey, earnedPoints);
+    }
+    if (!mounted) return;
+
     WorkoutCompleteDialog(
       context: context,
       workoutName: widget.meditationName, // Your workout name variable
-      elapsedTime:
-          (selectedDuration! * 60) - timerSeconds, // Your elapsed time variable
+      elapsedTime: activeSeconds, // Your elapsed time variable
+      pointsEarned: earnedPoints,
+      encouragement: meditationEncouragement,
+      completionKind: ranToCompletion ? 'full' : 'ended_early',
     ).show();
 
     // Log the meditation session
@@ -232,6 +338,14 @@ abstract class MeditationScreenState<T extends MeditationScreen>
                         onPressed: () {
                           setState(() {
                             selectedDuration = duration;
+                            // Choosing a different duration than the
+                            // restored draft's starts a fresh session.
+                            if (_restoredDraft != null &&
+                                _restoredDraft!.selectedDurationMinutes !=
+                                    duration) {
+                              _restoredDraft = null;
+                              _sessionKey = null;
+                            }
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -246,8 +360,15 @@ abstract class MeditationScreenState<T extends MeditationScreen>
                   ElevatedButton(
                     onPressed:
                         selectedDuration != null ? startMeditation : null,
-                    child: Text('Start Meditation'),
+                    child: Text(_restoredDraft != null
+                        ? 'Resume Meditation'
+                        : 'Start Meditation'),
                   ),
+                  if (_restoredDraft != null)
+                    TextButton(
+                      onPressed: startFreshMeditation,
+                      child: Text('Start over'),
+                    ),
                   if (widget.motivation !=
                       null) // Display motivation if provided
                     Padding(

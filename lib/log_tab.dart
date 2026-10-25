@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Import the intl package
+import 'completion.dart'; // Feeling faces for feedback editing
 import 'database_helper.dart'; // Import the DatabaseHelper class
 
 var exercises = [
@@ -106,6 +107,103 @@ class _LogScreenState extends State<LogScreen> {
     return DateFormat('hh:mm a').format(dateTime);
   }
 
+  String _completionKindLabel(String kind) {
+    switch (kind) {
+      case 'full':
+        return 'Completed in full';
+      case 'ended_early':
+        return 'Ended early';
+      case 'with_skips':
+        return 'Completed with skips';
+      default:
+        return kind;
+    }
+  }
+
+  /// Lets the user revise the feeling face and reflection stored on a
+  /// completion entry, updating the record in place.
+  Future<void> _editFeedback(Map<String, dynamic> log) async {
+    String? selectedFace = log['feeling'] as String?;
+    final commentController =
+        TextEditingController(text: (log['comments'] as String?) ?? '');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit feedback'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: feelingFaces.map((face) {
+                        final selected = face == selectedFace;
+                        return InkWell(
+                          onTap: () => setState(() {
+                            selectedFace = selected ? null : face;
+                          }),
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: selected
+                                  ? Colors.green.withValues(alpha: 0.25)
+                                  : null,
+                              border: Border.all(
+                                color: selected
+                                    ? Colors.green
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Text(face,
+                                style: const TextStyle(fontSize: 26)),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: commentController,
+                      decoration: const InputDecoration(
+                        labelText: 'Reflection',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (saved == true) {
+      await _dbHelper.updateLogFeedback(
+        (log['id'] as num).toInt(),
+        feeling: selectedFace,
+        clearFeeling: selectedFace == null,
+        comments: commentController.text.trim(),
+      );
+      _fetchLogs();
+    }
+  }
+
   String formatDuration(int seconds) {
     // Convert seconds to minutes and seconds
     final int minutes = seconds ~/ 60;
@@ -174,6 +272,44 @@ class _LogScreenState extends State<LogScreen> {
                                         fontWeight:
                                             FontWeight.bold)), // Comments label
                                 Text(log['comments']),
+                              ],
+                              if (log['feeling'] != null) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text("Feeling: ",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    Text(log['feeling'],
+                                        style:
+                                            const TextStyle(fontSize: 18)),
+                                  ],
+                                ),
+                              ],
+                              if (log['completion_kind'] != null) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _completionKindLabel(
+                                          log['completion_kind']),
+                                      style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontStyle: FontStyle.italic),
+                                    ),
+                                    if (log['points'] != null)
+                                      Text('${log['points']} points',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 20),
+                                      tooltip: 'Edit feedback',
+                                      onPressed: () => _editFeedback(log),
+                                    ),
+                                  ],
+                                ),
                               ]
                             ],
                           ),

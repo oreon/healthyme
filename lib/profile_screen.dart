@@ -18,6 +18,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _fastingDay;
   TimeOfDay? _feedingStartTime;
   TimeOfDay? _feedingEndTime;
+  TimeOfDay? _bedtime;
+  TimeOfDay? _wakeTime;
 
   final List<String> _daysOfWeek = [
     'None',
@@ -49,21 +51,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _fastingDay = prefs.getString('fastingDay');
 
       // Load feeding times
-      final startTime = prefs.getString('feedingStartTime');
-      final endTime = prefs.getString('feedingEndTime');
-      if (startTime != null) {
-        _feedingStartTime = TimeOfDay(
-          hour: int.parse(startTime.split(':')[0]),
-          minute: int.parse(startTime.split(':')[1]),
-        );
-      }
-      if (endTime != null) {
-        _feedingEndTime = TimeOfDay(
-          hour: int.parse(endTime.split(':')[0]),
-          minute: int.parse(endTime.split(':')[1]),
-        );
-      }
+      _feedingStartTime = _parseTime(prefs.getString('feedingStartTime'));
+      _feedingEndTime = _parseTime(prefs.getString('feedingEndTime'));
+
+      // Load sleep times
+      _bedtime = _parseTime(prefs.getString('bedtime'));
+      _wakeTime = _parseTime(prefs.getString('wakeTime'));
     });
+  }
+
+  TimeOfDay? _parseTime(String? value) {
+    if (value == null || !value.contains(':')) return null;
+    final hour = int.tryParse(value.split(':')[0]);
+    final minute = int.tryParse(value.split(':')[1]);
+    if (hour == null || minute == null) return null;
+    return TimeOfDay(hour: hour, minute: minute);
   }
 
   Future<void> _saveProfile() async {
@@ -88,6 +90,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             '${_feedingEndTime!.hour}:${_feedingEndTime!.minute}');
       }
 
+      // Save sleep times
+      if (_bedtime != null) {
+        await prefs.setString(
+            'bedtime', '${_bedtime!.hour}:${_bedtime!.minute}');
+      }
+      if (_wakeTime != null) {
+        await prefs.setString(
+            'wakeTime', '${_wakeTime!.hour}:${_wakeTime!.minute}');
+      }
+
       // Schedule notifications for feeding start and end times
       if (_feedingStartTime != null && _feedingEndTime != null) {
         await _scheduleFeedingNotifications();
@@ -100,8 +112,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _scheduleFeedingNotifications() async {
-    // Cancel any existing notifications
-    await _notificationService.cancelAllNotifications();
+    // Cancel only the existing feeding reminders (IDs 100 and 101, used
+    // below) so unrelated reminders are left untouched.
+    await _notificationService.cancelNotification(100);
+    await _notificationService.cancelNotification(101);
 
     // Schedule feeding start notification
     if (_feedingStartTime != null && _feedingEndTime != null) {
@@ -120,6 +134,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _feedingEndTime!.hour, _feedingEndTime!.minute,
         );
       }
+    }
+  }
+
+  Future<void> _selectSleepTime(BuildContext context, bool isBedtime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime:
+          (isBedtime ? _bedtime : _wakeTime) ?? TimeOfDay(hour: 22, minute: 0),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isBedtime) {
+          _bedtime = picked;
+        } else {
+          _wakeTime = picked;
+        }
+      });
     }
   }
 
@@ -266,6 +297,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _feedingEndTime == null
                         ? 'Select End Time'
                         : _feedingEndTime!.format(context),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              InkWell(
+                onTap: () => _selectSleepTime(context, true),
+                child: InputDecorator(
+                  decoration: InputDecoration(labelText: 'Bedtime'),
+                  child: Text(
+                    _bedtime == null
+                        ? 'Select Bedtime'
+                        : _bedtime!.format(context),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              InkWell(
+                onTap: () => _selectSleepTime(context, false),
+                child: InputDecorator(
+                  decoration: InputDecoration(labelText: 'Wake Time'),
+                  child: Text(
+                    _wakeTime == null
+                        ? 'Select Wake Time'
+                        : _wakeTime!.format(context),
                   ),
                 ),
               ),

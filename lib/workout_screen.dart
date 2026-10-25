@@ -1,4 +1,8 @@
 import 'activity_complete_dialog.dart';
+import 'completion.dart';
+import 'database_helper.dart';
+import 'points.dart';
+import 'session_draft.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
@@ -17,6 +21,10 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   final String? defaultAudio; // Default audio for the entire session
   final String? motivationString; // Purpose
 
+  /// Counter noun for the current item: 'Exercise' generally, 'Pose'
+  /// for yoga.
+  final String progressUnit;
+
   int currentExerciseIndex = 0;
   int currentSet = 1;
   int timerSeconds = 0;
@@ -28,7 +36,27 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
   final String restImage = 'assets/images/rest.jpg';
 
   int totalDuration = 0;
-  int elapsedTime = 0;
+
+  /// Practiced-time accounting: only unpaused work-phase seconds are
+  /// accumulated; rest seconds and skipped remainders never count.
+  final PracticeTimeTracker practice = PracticeTimeTracker();
+
+  /// Total actively practiced seconds so far in this session.
+  int get elapsedTime => practice.activeSeconds;
+
+  /// Unique key for this session instance, generated when the workout
+  /// starts; the points engine credits the session under this key so a
+  /// re-save can never double-count it. A resumed session reuses the
+  /// key stored in its draft.
+  String? _sessionKey;
+
+  /// A same-day in-progress draft restored on open, if any. While one
+  /// is present the primary button offers Resume instead of Start.
+  SessionDraft? _restoredDraft;
+
+  /// Set once the session has been completed/ended, so leaving the
+  /// screen afterwards does not save a fresh draft.
+  bool _sessionFinished = false;
 
   WorkoutScreenState(
       {required this.exercises,
@@ -37,6 +65,7 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
       required this.restDuration,
       this.defaultImage = 'assets/images/default.jpg', // Default stock image
       this.defaultAudio = 'sounds/workout.mp3', // Default
+      this.progressUnit = 'Exercise',
       this.motivationString =
           'This will make you feel really good afterwards so just do it'});
 
@@ -49,9 +78,52 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     totalDuration = exercises.fold(
             0, (sum, exercise) => sum + (exercise['duration'] as int)) *
         sets; // Cast to int
+    _loadDraft();
+  }
+
+  /// Restores a same-day unfinished session, if one was checkpointed:
+  /// place, set, practiced seconds and the original session key.
+  Future<void> _loadDraft() async {
+    final draft =
+        await DatabaseHelper().getSessionDraft('workout', workoutName);
+    if (!mounted || draft == null || isWorkoutStarted) return;
+    setState(() {
+      _restoredDraft = draft;
+      _sessionKey = draft.sessionKey;
+      currentExerciseIndex =
+          draft.exerciseIndex.clamp(0, exercises.length - 1).toInt();
+      currentSet = draft.set.clamp(1, sets).toInt();
+      practice.activeSeconds = draft.activeSeconds;
+      practice.restoreSkipped(draft.skipped);
+      isWorkPhase = true;
+      isPaused = false;
+      timerSeconds = exercises[currentExerciseIndex]['duration'] as int;
+    });
+  }
+
+  /// Checkpoints the in-progress session so it can be resumed later
+  /// today. Called on pause, on exercise/set transitions and on exit.
+  void _saveDraft() {
+    final sessionKey = _sessionKey;
+    if (sessionKey == null || _sessionFinished) return;
+    DatabaseHelper().saveSessionDraft(SessionDraft(
+      kind: 'workout',
+      identity: workoutName,
+      sessionKey: sessionKey,
+      exerciseIndex: currentExerciseIndex,
+      set: currentSet,
+      activeSeconds: practice.activeSeconds,
+      skipped: practice.skippedKeys.toList(),
+      date: DatabaseHelper().getTodaysDate(),
+      savedAtMillis: DateTime.now().millisecondsSinceEpoch,
+    ));
   }
 
   void startWorkout() {
+    // A resumed session keeps its stored key (points stay single-count);
+    // a fresh session mints a new one.
+    _sessionKey ??=
+        'workout:$workoutName:${DateTime.now().microsecondsSinceEpoch}';
     setState(() {
       isWorkoutStarted = true;
     });
@@ -59,6 +131,23 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     startTimer();
     playStartAudio();
     WakelockPlus.enable();
+  }
+
+  /// Discards the restored draft and starts the session from the top
+  /// with a fresh session key.
+  void startFreshWorkout() {
+    DatabaseHelper().clearSessionDraft('workout', workoutName);
+    setState(() {
+      _restoredDraft = null;
+      _sessionKey = null;
+      currentExerciseIndex = 0;
+      currentSet = 1;
+      practice.reset();
+      isWorkPhase = true;
+      isPaused = false;
+      timerSeconds = exercises[currentExerciseIndex]['duration'] as int;
+    });
+    startWorkout();
   }
 
   void startTimer() {
@@ -69,8 +158,10 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
         return;
       }
       if (!isPaused) {
+        // Only unpaused work-phase ticks are practiced time; rest
+        // seconds never advance the practiced total.
+        practice.tick(isWorkPhase: isWorkPhase, isPaused: isPaused);
         setState(() {
-          elapsedTime++;
           if (timerSeconds > 0) {
             timerSeconds--;
           } else {
@@ -84,26 +175,59 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
               }
             } else {
               // Switch to the next exercise or set.
-              if (currentExerciseIndex < exercises.length - 1) {
-                currentExerciseIndex++;
-              } else if (currentSet < sets) {
-                currentSet++;
-                currentExerciseIndex = 0;
-              } else {
+              if (!_advanceToNextExercise()) {
                 timer?.cancel();
                 isWorkoutStarted = false;
                 WakelockPlus.disable();
-                showWorkoutCompleteDialog();
+                showWorkoutCompleteDialog(
+                    completionKind:
+                        practice.hasSkips ? 'with_skips' : 'full');
                 return;
               }
-              isWorkPhase = true;
-              timerSeconds = exercises[currentExerciseIndex]['duration'] as int;
-              playStartAudio();
             }
+            _saveDraft();
           }
         });
       }
     });
+  }
+
+  /// Moves to the next exercise or set and starts its work phase.
+  /// Returns false when the last exercise of the last set is done.
+  bool _advanceToNextExercise() {
+    if (currentExerciseIndex < exercises.length - 1) {
+      currentExerciseIndex++;
+    } else if (currentSet < sets) {
+      currentSet++;
+      currentExerciseIndex = 0;
+    } else {
+      return false;
+    }
+    isWorkPhase = true;
+    timerSeconds = exercises[currentExerciseIndex]['duration'] as int;
+    playStartAudio();
+    return true;
+  }
+
+  /// Skips the current exercise (or the current rest): the session
+  /// advances without crediting the skipped exercise's remaining
+  /// seconds, and a skipped exercise is not marked as practiced.
+  void skipCurrent() {
+    if (!isWorkoutStarted) return;
+    setState(() {
+      if (isWorkPhase) {
+        practice.skipExercise(currentExerciseIndex, currentSet);
+      }
+      if (!_advanceToNextExercise()) {
+        timer?.cancel();
+        isWorkoutStarted = false;
+        WakelockPlus.disable();
+        showWorkoutCompleteDialog(
+            completionKind: practice.hasSkips ? 'with_skips' : 'full');
+        return;
+      }
+    });
+    _saveDraft();
   }
 
   void playStartAudio() async {
@@ -127,11 +251,24 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     await audioPlayer.play(AssetSource('sounds/rest.mp3'));
   }
 
+  /// Rings the completion bell once (the session's own audio has
+  /// already been stopped by the caller).
+  void _playCompletionBell() {
+    final bellPlayer = AudioPlayer();
+    bellPlayer.setReleaseMode(ReleaseMode.release);
+    bellPlayer.play(AssetSource('sounds/tibet_bell.wav'));
+    bellPlayer.onPlayerComplete.first
+        .then((_) => bellPlayer.dispose())
+        .catchError((_) {});
+  }
+
   void togglePause() {
     setState(() {
       isPaused = !isPaused;
     });
-    if (!isPaused) {
+    if (isPaused) {
+      _saveDraft();
+    } else {
       playStartAudio();
     }
   }
@@ -144,20 +281,39 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
       isWorkoutStarted = false;
     });
 
-    showWorkoutCompleteDialog();
+    showWorkoutCompleteDialog(
+        completionKind: practice.hasSkips ? 'with_skips' : 'ended_early');
   }
 
-  void showWorkoutCompleteDialog() async {
+  void showWorkoutCompleteDialog({String completionKind = 'full'}) async {
+    _sessionFinished = true;
     await audioPlayer.stop();
+    _playCompletionBell();
+    await DatabaseHelper().clearSessionDraft('workout', workoutName);
+    // Credit the session's points for its active (unpaused, work-phase)
+    // elapsed time under its session key.
+    final earnedPoints = sessionPoints(elapsedTime);
+    final sessionKey = _sessionKey;
+    if (sessionKey != null) {
+      await DatabaseHelper().awardSessionPoints(sessionKey, earnedPoints);
+    }
+    if (!mounted) return;
     WorkoutCompleteDialog(
       context: context,
       workoutName: workoutName, // Your workout name variable
       elapsedTime: elapsedTime, // Your elapsed time variable
+      pointsEarned: earnedPoints,
+      encouragement: physicalEncouragement,
+      completionKind: completionKind,
     ).show();
   }
 
   @override
   void dispose() {
+    // Checkpoint an unfinished session so it can be resumed today.
+    if (isWorkoutStarted) {
+      _saveDraft();
+    }
     timer?.cancel();
     timer = null;
 
@@ -219,12 +375,23 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                             EdgeInsets.symmetric(horizontal: 40, vertical: 20),
                       ),
                       child: Text(
-                        'Start Workout',
+                        _restoredDraft != null ? 'Resume' : 'Start Workout',
                         style: TextStyle(fontSize: 24),
                       ),
                     ),
+                  if (!isWorkoutStarted && _restoredDraft != null)
+                    TextButton(
+                      onPressed: startFreshWorkout,
+                      child: Text('Start over'),
+                    ),
                   if (!isWorkoutStarted) Text(motivationString!),
-                  if (isWorkoutStarted && sets > 1)
+                  if (isWorkoutStarted)
+                    Text(
+                      '$progressUnit ${currentExerciseIndex + 1} of ${exercises.length}',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  if (isWorkoutStarted)
                     Text(
                       'Set $currentSet of $sets',
                       style:
@@ -269,6 +436,11 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
                         ),
                         SizedBox(width: 20),
                         ElevatedButton(
+                          onPressed: skipCurrent,
+                          child: Text('Skip'),
+                        ),
+                        SizedBox(width: 20),
+                        ElevatedButton(
                           onPressed: endWorkout,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
@@ -286,4 +458,3 @@ abstract class WorkoutScreenState<T extends WorkoutScreen> extends State<T> {
     );
   }
 }
-

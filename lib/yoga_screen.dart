@@ -69,6 +69,7 @@ class _YogaScreenState extends WorkoutScreenState<YogaScreen> {
             ],
             sets: 1,
             workoutName: 'Yoga',
+            progressUnit: 'Pose',
             restDuration: 3,
             defaultAudio: 'sounds/yoga.mp3',
             motivationString:

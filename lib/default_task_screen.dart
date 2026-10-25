@@ -33,12 +33,18 @@ class DefaultTaskScreen extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  // Insert the completed task into the database
-                  await dbHelper.insertCompletedTask(taskName, 'general');
-                  await MicroLlm().recordBehavior(taskName);
-                  await AudioPlayer().play(AssetSource('sounds/complete.mp3'));
-                  final score = await dbHelper.getTodaysScore();
-                  await dbHelper.updateTodaysScore(score);
+                  // Log the completion once per day: repeated Done taps
+                  // for the same task must not insert duplicate logs.
+                  final todaysLogs = await dbHelper.getCompletedTasks();
+                  final alreadyLogged = todaysLogs.any((log) =>
+                      log['activity'] == taskName ||
+                      log['taskname'] == taskName);
+                  if (!alreadyLogged) {
+                    await dbHelper.insertCompletedTask(taskName, 'general');
+                    await MicroLlm().recordBehavior(taskName);
+                  }
+                  await AudioPlayer()
+                      .play(AssetSource('sounds/tibet_bell.wav'));
                   if (context.mounted) Navigator.pop(context);
                 },
                 child: Text('Done'),

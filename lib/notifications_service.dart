@@ -39,6 +39,10 @@ class NotificationService {
     await _notificationsPlugin.cancelAll(); // Cancel all notifications
   }
 
+  Future<void> cancelNotification(int id) async {
+    await _notificationsPlugin.cancel(id); // Cancel a single notification
+  }
+
   Future<void> zonedSchedule(
       int id, final String title, String body, int hour, int minute) async {
     await _notificationsPlugin.zonedSchedule(

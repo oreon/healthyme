@@ -62,11 +62,6 @@ class _UpperBodyWorkoutScreenState
       : super(
           exercises: [
             {
-              'name': 'Leg raises',
-              'duration': 45,
-              'image': 'assets/images/upper/VUp.gif'
-            },
-            {
               'name': 'Pushups',
               'duration': 45,
               'image': 'assets/images/upper/modified-pushups.gif'
@@ -82,11 +77,6 @@ class _UpperBodyWorkoutScreenState
               'image': 'assets/images/upper/Plank_Ups.gif'
             },
             {
-              'name': 'Pushups',
-              'duration': 45,
-              'image': 'assets/images/upper/modified-pushups.gif'
-            },
-            {
               'name': 'Plank to Dolphin',
               'duration': 45,
               'image': 'assets/images/upper/PlankToDolphinPose.gif'
@@ -98,7 +88,7 @@ class _UpperBodyWorkoutScreenState
             },
             {
               'name': 'Plank',
-              'duration': 50,
+              'duration': 45,
               'description':
                   'Get in plank position, put your weight on your forearms and brace your stomach as if someone is about to punch you',
               'image': 'assets/images/upper/plank.webp'
@@ -106,7 +96,7 @@ class _UpperBodyWorkoutScreenState
           ],
           sets: 3,
           workoutName: 'Upper Body Workout',
-          restDuration: 18, // 15 seconds of rest for Lower Body Workout
+          restDuration: 15, // 15 seconds of rest for Upper Body Workout
         );
 }
 
